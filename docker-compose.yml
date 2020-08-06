@@ -1,0 +1,35 @@
+version: '3'
+services:
+
+  app:
+    build: .
+    environment:
+      - NODE_ENV
+      - NODE_PORT
+      - NODE_COOKIE_SECRET
+      - MONGO_PORT
+      - MONGO_DB
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    volumes:
+      - ./data:/data/db
+
+  nginx:
+    image: nginx:latest
+    environment:
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+      - NODE_PORT
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/templates/default.conf.template
+      - ./static:/app/static
+    ports:
+      - 80:80
+    depends_on:
+      - app
