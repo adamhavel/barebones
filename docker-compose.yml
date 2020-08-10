@@ -10,25 +10,24 @@ services:
       - MONGO_PORT
       - MONGO_DB
     volumes:
-      - ./src:/app/src
+      - ./server:/app/server
     depends_on:
       - mongo
 
   mongo:
-    image: mongo:latest
+    image: mongo:4.4
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     volumes:
       - ./data:/data/db
 
   nginx:
-    image: nginx:latest
+    image: nginx:1.19
     environment:
       - NGINX_ENTRYPOINT_QUIET_LOGS=1
       - NODE_PORT
     volumes:
       - ./config/nginx.conf:/etc/nginx/templates/default.conf.template
-      - ./static:/app/static
     ports:
       - 80:80
     depends_on:

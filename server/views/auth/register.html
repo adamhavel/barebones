@@ -1,0 +1,10 @@
+{% extends "../document.html" %}
+
+{% block content %}
+<h1>Register</h1>
+<form action="{{ routes('account.register') }}" method="post">
+    <input type="email" name="email" />
+    <input type="password" name="password" />
+    <button>Register</button>
+</form>
+{% endblock %}

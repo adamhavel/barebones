@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <title>App</title>
+</head>
+<body>
+    <header>
+        <ul>
+            <li><a href="{{ routes('home') }}">Home</a></li>
+            {% if not user %}
+                <li><a href="{{ routes('account.login') }}">Login</a></li>
+                <li><a href="{{ routes('account.register') }}">Register</a></li>
+            {% else %}
+                <li><a href="{{ routes('account.logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+    </header>
+    {% block content %}{% endblock %}
+</body>
+</html>
