@@ -1,14 +1,16 @@
 const routes = {
     home: '',
-    account: {
+    auth: {
         root: 'account',
         login: 'login',
         logout: 'logout',
-        register: 'register'
+        register: 'register',
     },
     settings: {
-        root: 'settings'
-    }
+        root: 'settings',
+        email: 'email',
+        password: 'password',
+    },
 };
 
 const route = function(path) {

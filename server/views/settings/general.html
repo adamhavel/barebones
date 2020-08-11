@@ -2,4 +2,31 @@
 
 {% block content %}
 <h1>Settings</h1>
+
+<form action="{{ routes('settings') }}" method="post">
+    <fieldset>
+        <legend>E-mail</legend>
+        <label>
+            <span>E-mail {{ errors.email.msg }}:</span>
+            <input type="email" name="email" value="{{ body.email if body.email else user.email }}" />
+        </label>
+        <button name="property" value="email">Change e-mail</button>
+    </fieldset>
+</form>
+
+<form action="{{ routes('settings') }}" method="post">
+    <fieldset>
+        <legend>Password</legend>
+        <label>
+            <span>Current password {{ errors.oldPassword.msg }}:</span>
+            <input type="password" name="oldPassword" />
+        </label>
+        <label>
+            <span>New password {{ errors.password.msg }}:</span>
+            <input type="password" name="password" />
+        </label>
+        <button name="property" value="password">Change password</button>
+    </fieldset>
+</form>
+
 {% endblock %}

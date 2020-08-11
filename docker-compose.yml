@@ -28,6 +28,7 @@ services:
       - NODE_PORT
     volumes:
       - ./config/nginx.conf:/etc/nginx/templates/default.conf.template
+      - ./client:/app/client
     ports:
       - 80:80
     depends_on:

@@ -4,10 +4,10 @@ import sessionStoreFactory from 'connect-mongo';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
-import mongoose from 'mongoose';
+import db from 'mongoose';
 
 import { authorize } from './controllers/auth.js';
-import router from './routes/router.js';
+import router from './controllers/router.js';
 import routes from './config/routes.js';
 
 
@@ -17,7 +17,7 @@ const {
     NODE_COOKIE_SECRET: secret,
     NODE_ENV: env,
     MONGO_PORT: dbPort,
-    MONGO_DB: dbName
+    MONGO_DB: dbName,
 } = process.env;
 
 
@@ -29,13 +29,17 @@ app.set('trust proxy', true);
 app.set('view engine', 'html');
 app.set('x-powered-by', false);
 
+app.listen(port, () => {
+    console.log(`Listening at http://localhost:${port} in ${env} mode.`)
+});
+
 
 // Templating
 const templateDir = 'server/views';
 const templateOptions = {
     autoescape: true,
     express: app,
-    noCache: true
+    noCache: true,
 };
 const templateEnv = nunjucks.configure(templateDir, templateOptions);
 
@@ -46,10 +50,11 @@ templateEnv.addGlobal('routes', routes);
 const dbUrl = `mongodb://mongo:${dbPort}/${dbName}`;
 const dbOptions = {
     useUnifiedTopology: true,
-    useNewUrlParser: true
+    useNewUrlParser: true,
 };
 
-mongoose.connect(dbUrl, dbOptions).then(db => {
+
+db.connect(dbUrl, dbOptions).then(db => {
 
     // Middleware
     app.use(compression());
@@ -61,8 +66,8 @@ mongoose.connect(dbUrl, dbOptions).then(db => {
         store: new SessionStore({ mongooseConnection: db.connection }),
         cookie: {
             sameSite: 'lax',
-            maxAge: 1000*60*60*24*14
-        }
+            maxAge: 1000*60*60*24*14,
+        },
     }));
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(authorize);
@@ -84,11 +89,6 @@ mongoose.connect(dbUrl, dbOptions).then(db => {
         res.status(404).render('errors/not-found');
     });
 
-
-    app.listen(port, () => {
-        console.log(`Listening at http://localhost:${port} in ${env} mode.`)
-    });
-
 });
 
-export { app as default, templateEnv };
+export default app;
