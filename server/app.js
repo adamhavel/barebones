@@ -8,6 +8,7 @@ import db from 'mongoose';
 import url from 'url';
 
 import { authenticate } from './controllers/auth.js';
+import urlGenerator from './services/urlGenerator.js';
 import router from './routes/router.js';
 import routes from './config/routes.js';
 
@@ -77,12 +78,7 @@ db.connect(dbUrl, dbOptions).then(db => {
     }));
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(authenticate);
-    app.use((req, res, next) => {
-        const { protocol, hostname } = req;
-
-        req.baseUrl = new URL(protocol + '://' + hostname);
-        next();
-    });
+    app.use(urlGenerator);
     app.use(router);
 
 

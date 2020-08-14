@@ -1,0 +1,52 @@
+{% extends "../document.html" %}
+
+{% block content %}
+<h1>Settings</h1>
+
+<section>
+    <h2>Account</h2>
+
+    <form action="{{ routes('settings') }}" method="post">
+        <fieldset>
+            <legend>E-mail</legend>
+            <label>
+                <span>E-mail {{ errors.email.msg }}:</span>
+                <input type="email" name="email" value="{{ body.email if body.email else user.email }}" />
+            </label>
+            <button name="type" value="email">Change e-mail</button>
+        </fieldset>
+    </form>
+
+    <form action="{{ routes('settings') }}" method="post">
+        <fieldset>
+            <legend>Password</legend>
+            <label>
+                <span>Current password {{ errors.oldPassword.msg }}:</span>
+                <input type="password" name="oldPassword" />
+            </label>
+            <label>
+                <span>New password {{ errors.newPassword.msg }}:</span>
+                <input type="password" name="newPassword" />
+            </label>
+            <button name="type" value="password">Change password</button>
+        </fieldset>
+    </form>
+
+    <form action="{{ routes('settings') }}" method="post">
+        <fieldset>
+            <legend>Delete account</legend>
+            <p>Delete your account and all data. This is irreversible.</p>
+            <label>
+                <span>Current date in format "DD/MM/YYYY" {{ errors.dateChallenge.msg }}:</span>
+                <input type="text" name="dateChallenge" value="{{ body.dateChallenge }}" />
+            </label>
+            <label>
+                <span>Password {{ errors.password.msg }}:</span>
+                <input type="password" name="password" />
+            </label>
+            <button name="type" value="delete">Delete account</button>
+        </fieldset>
+    </form>
+</section>
+
+{% endblock %}

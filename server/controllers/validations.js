@@ -1,11 +1,10 @@
 import validator from 'express-validator';
+import moment from 'moment';
 
 import User from '../models/user.js';
 
 const PASSWORD_MIN_LENGTH = 5;
 const { body } = validator;
-
-// TODO: Run imperatively and throw errors.
 
 export function email(name = 'email') {
     return body(name, 'must be valid')
@@ -47,4 +46,10 @@ export function passwordMatch(name = 'password') {
                 return true;
             }
         });
+}
+
+export function dateChallenge(name = 'dateChallenge') {
+    return body(name, 'must match the format "DD/MM/YYYY"')
+        .if(body(name).exists())
+        .custom(value => value === moment().format('DD/MM/YYYY'));
 }

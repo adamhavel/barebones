@@ -10,14 +10,16 @@ const settings = express.Router();
 
 settings.route(routes('settings'))
     .all(stopUnauthenticated)
-    .get(render('settings/general'))
+    .get(render('settings/account'))
     .post(
         validate.email(),
         validate.uniqueEmail(),
-        validate.password(),
+        validate.password('newPassword'),
         validate.passwordMatch('oldPassword'),
-        renderValidationErrors('settings/general'),
-        ctrl.updateSettings
+        validate.passwordMatch('password'),
+        validate.dateChallenge(),
+        renderValidationErrors('settings/account'),
+        ctrl.updateAccount
     );
 
 export default settings;

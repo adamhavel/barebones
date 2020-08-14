@@ -8,8 +8,6 @@ const routes = {
     },
     settings: {
         root: 'settings',
-        email: 'email',
-        password: 'password',
     },
 };
 

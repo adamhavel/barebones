@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
-import routes from '../config/routes.js';
+
+import { getVerificationUrl } from './urlGenerator.js';
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
@@ -10,7 +11,9 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-export function sendRegistrationEmail(email, verificationUrl) {
+export function sendRegistrationEmail(email, token) {
+    const verificationUrl = getVerificationUrl(token);
+
     return transporter.sendMail({
         from: '"Fred Foo 👻" <foo@example.com>',
         to: email,

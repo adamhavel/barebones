@@ -1,16 +1,23 @@
 import routes from '../config/routes.js';
+import User from '../models/user.js';
+import { logout, regenerateSession } from './auth.js';
 
-export async function updateSettings(req, res) {
-    const { property } = req.body;
+export async function updateAccount(req, res) {
+    const { type } = req.body;
 
-    switch (property) {
+    switch (type) {
         case 'password':
-        case 'email':
-            req.user[property] = req.body[property];
-            req.user = await req.user.save();
+            req.user.password = req.body.newPassword;
             break;
+        case 'email':
+            req.user.email = req.body.email;
+            break;
+        case 'delete':
+            await User.findByIdAndDelete(req.user.id);
+            return logout(req, res);
     }
 
-    // TODO: Add message.
-    res.render('settings/general', { msg: '' });
+    req.user = await req.user.save();
+    await regenerateSession(req);
+    res.render('settings/account', { msg: '' });
 }
