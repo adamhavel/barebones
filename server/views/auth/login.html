@@ -1,8 +1,14 @@
 {% extends "../document.html" %}
 
+{% macro queryString(query) -%}
+    {% for name, value in query -%}
+        {{ '?' if loop.first else '&' }}{{ name | urlencode }}={{ value | urlencode }}
+    {%- endfor %}
+{%- endmacro %}
+
 {% block content %}
 <h1>Login</h1>
-<form action="{{ routes('auth.login') }}" method="post">
+<form action="{{ routes('auth/login') }}{{ queryString(query) if query }}" method="post">
     <label>
         <span>E-mail {{ errors.email.msg }}:</span>
         <input type="email" name="email" value="{{ body.email }}" />

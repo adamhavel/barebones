@@ -5,6 +5,8 @@ import User from '../models/user.js';
 const PASSWORD_MIN_LENGTH = 5;
 const { body } = validator;
 
+// TODO: Run imperatively and throw errors.
+
 export function email(name = 'email') {
     return body(name, 'must be valid')
         .if(body(name).exists())

@@ -14,7 +14,7 @@ const routes = {
 };
 
 const route = function(path) {
-    let pathArr = path.split('.');
+    let pathArr = path.split('/');
     let current = routes;
 
     return pathArr.reduce((acc, item) => {

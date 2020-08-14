@@ -7,6 +7,7 @@ services:
       - NODE_ENV
       - NODE_PORT
       - NODE_COOKIE_SECRET
+      - NODE_SESSION_SECRET
       - MONGO_PORT
       - MONGO_DB
     volumes:

@@ -9,16 +9,19 @@
         <ul>
             <li><a href="{{ routes('home') }}">Home</a></li>
             {% if not user %}
-                <li><a href="{{ routes('auth.login') }}">Login</a></li>
-                <li><a href="{{ routes('auth.register') }}">Register</a></li>
+                <li><a href="{{ routes('auth/login') }}">Login</a></li>
+                <li><a href="{{ routes('auth/register') }}">Register</a></li>
             {% else %}
                 <li>Logged in as: {{ user.email }}</li>
                 <li><a href="{{ routes('settings') }}">Settings</a></li>
-                <li><a href="{{ routes('auth.logout') }}">Logout</a></li>
+                <li><a href="{{ routes('auth/logout') }}">Logout</a></li>
             {% endif %}
         </ul>
     </header>
-    {{ user | dump }}
-    {% block content %}{% endblock %}
+    <main>
+        <p><code>{{ user | dump(1) }}</code></p>
+        <p>{{ msg }}</p>
+        {% block content %}{% endblock %}
+    </main>
 </body>
 </html>

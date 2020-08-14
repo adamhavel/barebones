@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Register</h1>
-<form action="{{ routes('auth.register') }}" method="post">
+<form action="{{ routes('auth/register') }}" method="post">
     <label>
         <span>E-mail {{ errors.email.msg }}:</span>
         <input type="email" name="email" value="{{ body.email }}" />

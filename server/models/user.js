@@ -16,7 +16,7 @@ const userSchema = new db.Schema({
     subscription: {
         duePaymentAt: { type: Date },
         isActive: { type: Boolean, default: false },
-        trialEndsAt: { type: Date, default() { return moment().add(TRIAL_LENGTH_DAYS, 'days').toDate(); } },
+        trialEndsAt: { type: Date, default() { return moment().add(TRIAL_LENGTH_DAYS, 'days').toDate() } },
     },
 });
 

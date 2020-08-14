@@ -5,16 +5,18 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
 import db from 'mongoose';
+import url from 'url';
 
-import { authorize } from './controllers/auth.js';
-import router from './controllers/router.js';
+import { authenticate } from './controllers/auth.js';
+import router from './routes/router.js';
 import routes from './config/routes.js';
 
 
 // Environment
 const {
     NODE_PORT: port,
-    NODE_COOKIE_SECRET: secret,
+    NODE_COOKIE_SECRET: cookieSecret,
+    NODE_SESSION_SECRET: sessionSecret,
     NODE_ENV: env,
     MONGO_PORT: dbPort,
     MONGO_DB: dbName,
@@ -60,17 +62,27 @@ db.connect(dbUrl, dbOptions).then(db => {
     app.use(compression());
     app.use(session({
         name: 'stamp',
-        secret,
+        secret: cookieSecret,
         resave: false,
         saveUninitialized: false,
-        store: new SessionStore({ mongooseConnection: db.connection }),
+        store: new SessionStore({
+            mongooseConnection: db.connection,
+            secret: sessionSecret,
+        }),
         cookie: {
             sameSite: 'lax',
             maxAge: 1000*60*60*24*14,
+            // TODO: Add secure
         },
     }));
     app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(authorize);
+    app.use(authenticate);
+    app.use((req, res, next) => {
+        const { protocol, hostname } = req;
+
+        req.baseUrl = new URL(protocol + '://' + hostname);
+        next();
+    });
     app.use(router);
 
 
