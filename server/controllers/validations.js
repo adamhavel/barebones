@@ -6,6 +6,18 @@ import User from '../models/user.js';
 const PASSWORD_MIN_LENGTH = 5;
 const { body } = validator;
 
+export function renderErrors(view) {
+    return (req, res, next) => {
+        const errors = validator.validationResult(req);
+
+        if (errors.isEmpty()) {
+            next();
+        } else {
+            res.status(422).render(view, { errors: errors.mapped() });
+        }
+    };
+};
+
 export function email(name = 'email') {
     return body(name, 'must be valid')
         .if(body(name).exists())
@@ -46,6 +58,13 @@ export function passwordMatch(name = 'password') {
                 return true;
             }
         });
+}
+
+export function passwordDifference(nameA = 'newPassword', nameB = 'oldPassword') {
+    return body(nameA, 'are the same')
+        .if(body(nameA).exists())
+        .if(body(nameB).exists())
+        .custom((newPassword, { req }) => newPassword !== req.body[nameB]);
 }
 
 export function dateChallenge(name = 'dateChallenge') {

@@ -3,7 +3,7 @@ import express from 'express';
 import routes from '../config/routes.js';
 import * as validate from '../controllers/validations.js';
 import * as ctrl from '../controllers/auth.js';
-import { render, renderValidationErrors, redirect } from '../controllers/utils.js';
+import { render, redirect } from '../controllers/utils.js';
 
 const auth = express.Router();
 
@@ -15,9 +15,9 @@ auth.route(routes('auth/login'))
     .post(
         validate.email(),
         validate.password(),
-        renderValidationErrors('auth/login'),
+        validate.renderErrors('auth/login'),
         ctrl.login,
-        ctrl.renderLoginErrors
+        ctrl.renderAuthErrors('auth/login')
     );
 
 auth.route(routes('auth/register'))
@@ -27,8 +27,19 @@ auth.route(routes('auth/register'))
         validate.email(),
         validate.uniqueEmail(),
         validate.password(),
-        renderValidationErrors('auth/register'),
+        validate.renderErrors('auth/register'),
         ctrl.register
+    );
+
+auth.route(routes('auth/forgot'))
+    .all(ctrl.stopAuthenticated)
+    .get(ctrl.renderForgotPassword)
+    .post(
+        validate.email(),
+        validate.password(),
+        validate.renderErrors('auth/forgot'),
+        ctrl.resetPassword,
+        ctrl.renderAuthErrors('auth/forgot')
     );
 
 auth.route(routes('auth/logout'))

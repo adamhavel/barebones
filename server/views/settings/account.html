@@ -7,6 +7,7 @@
     <h2>Account</h2>
 
     <form action="{{ routes('settings') }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
         <fieldset>
             <legend>E-mail</legend>
             <label>
@@ -18,6 +19,7 @@
     </form>
 
     <form action="{{ routes('settings') }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
         <fieldset>
             <legend>Password</legend>
             <label>
@@ -33,6 +35,7 @@
     </form>
 
     <form action="{{ routes('settings') }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
         <fieldset>
             <legend>Delete account</legend>
             <p>Delete your account and all data. This is irreversible.</p>
@@ -47,6 +50,16 @@
             <button name="type" value="delete">Delete account</button>
         </fieldset>
     </form>
+</section>
+
+<section>
+    <h2>Sessions</h2>
+
+    <ul>
+        {% for session in activeSessions %}
+            <li>{{ session | dump }}</li>
+        {% endfor %}
+    </ul>
 </section>
 
 {% endblock %}

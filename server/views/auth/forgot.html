@@ -1,0 +1,26 @@
+{% extends "../document.html" %}
+
+{% macro queryString(query) -%}
+    {% for name, value in query -%}
+        {{ '?' if loop.first else '&' }}{{ name | urlencode }}={{ value | urlencode }}
+    {%- endfor %}
+{%- endmacro %}
+
+{% block content %}
+<h1>Forgotten password</h1>
+<form action="{{ routes('auth/forgot') }}{{ queryString(query) if query }}" method="post">
+    {% if query.token %}
+        <label>
+            <span>Password {{ errors.password.msg }}:</span>
+            <input type="password" name="password" />
+        </label>
+        <button>Reset password</button>
+    {% else %}
+        <label>
+            <span>E-mail {{ errors.email.msg }}:</span>
+            <input type="email" name="email" value="{{ body.email }}" />
+        </label>
+        <button>Reset password</button>
+    {% endif %}
+</form>
+{% endblock %}

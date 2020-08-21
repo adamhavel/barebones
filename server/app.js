@@ -1,6 +1,7 @@
 import express from 'express';
 import session from 'express-session';
 import sessionStoreFactory from 'connect-mongo';
+import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
@@ -16,11 +17,12 @@ import routes from './config/routes.js';
 // Environment
 const {
     NODE_PORT: port,
+    NODE_SESSION_COOKIE: sessionCookieName,
     NODE_COOKIE_SECRET: cookieSecret,
-    NODE_SESSION_SECRET: sessionSecret,
     NODE_ENV: env,
     MONGO_PORT: dbPort,
     MONGO_DB: dbName,
+    SERVERNAME: servername
 } = process.env;
 
 
@@ -62,23 +64,26 @@ db.connect(dbUrl, dbOptions).then(db => {
     // Middleware
     app.use(compression());
     app.use(session({
-        name: 'stamp',
+        name: sessionCookieName,
         secret: cookieSecret,
         resave: false,
         saveUninitialized: false,
+        proxy: true,
         store: new SessionStore({
             mongooseConnection: db.connection,
-            secret: sessionSecret,
+            stringify: false,
+            touchAfter: 24 * 3600
         }),
         cookie: {
             sameSite: 'lax',
             maxAge: 1000*60*60*24*14,
-            // TODO: Add secure
+            // TODO: Add secure in production
         },
     }));
+    app.use(cookieParser(cookieSecret));
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(authenticate);
-    app.use(urlGenerator);
+    app.use(urlGenerator(servername));
     app.use(router);
 
 

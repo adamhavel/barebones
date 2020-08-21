@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-import { getVerificationUrl } from './urlGenerator.js';
+import { getEmailVerificationUrl, getPasswordResetUrl } from './urlGenerator.js';
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
@@ -12,13 +12,25 @@ const transporter = nodemailer.createTransport({
 });
 
 export function sendRegistrationEmail(email, token) {
-    const verificationUrl = getVerificationUrl(token);
+    const verificationUrl = getEmailVerificationUrl(token);
 
     return transporter.sendMail({
         from: '"Fred Foo 👻" <foo@example.com>',
         to: email,
         subject: 'Verify your account',
         text: `Open ${verificationUrl} to verify.`,
-        html: `Open <a href="">${verificationUrl}</a> to verify.`
+        html: `Open <a href="${verificationUrl}">${verificationUrl}</a> to verify.`
+    });
+}
+
+export function sendPasswordResetEmail(email, token) {
+    const verificationUrl = getPasswordResetUrl(token);
+
+    return transporter.sendMail({
+        from: '"Fred Foo 👻" <foo@example.com>',
+        to: email,
+        subject: 'Reset password',
+        text: `Open ${verificationUrl} to verify.`,
+        html: `Open <a href="${verificationUrl}">${verificationUrl}</a> to verify.`
     });
 }

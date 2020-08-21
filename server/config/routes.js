@@ -5,6 +5,7 @@ const routes = {
         login: 'login',
         logout: 'logout',
         register: 'register',
+        forgot: 'forgot-password'
     },
     settings: {
         root: 'settings',
