@@ -8,8 +8,8 @@
 
 {% block content %}
 <h1>Forgotten password</h1>
-<form action="{{ routes('auth/forgot') }}{{ queryString(query) if query }}" method="post">
-    {% if query.token %}
+<form action="{{ routes('auth/forgot') }}{{ queryString(query) if (query and isVerified) }}" method="post">
+    {% if isVerified %}
         <label>
             <span>Password {{ errors.password.msg }}:</span>
             <input type="password" name="password" />

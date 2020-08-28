@@ -9,16 +9,20 @@ const {
 } = process.env;
 
 export async function renderLogin(req, res) {
+    const { query } = req;
+    const { token } = query;
+    const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
+
     res.render('auth/login', {
-        msg: req.query.token && 'login to verify your e-mail'
+        msg: token && (validToken ? 'login to verify your e-mail' : 'invalid or expired token. enter e-mail and password to resend.'),
+        query
     });
 }
 
-export async function login(req, res, next) {
+export async function login(req, res) {
     const { email, password } = req.body;
     const { token, callbackUrl } = req.query;
-    const existingToken = token && await Token.findOne({ token, purpose: TokenPurpose.EmailVerification }).exec();
-    const user = await User.findOne({ email }).exec();
+    const user = await User.findOne({ email });
     const matchesPassword = await user?.matchesPassword(password);
 
     // Invalid e-mail or password.
@@ -32,13 +36,19 @@ export async function login(req, res, next) {
         // No token provided.
         if (!token) throw new AuthError('e-mail not verified. check e-mail.');
 
+        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
+
         // Provided token invalid or expired.
-        if (!existingToken || !existingToken.userId.equals(user._id)) {
+        if (!validToken) {
             const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
             // TODO: Don't wait for confirmation.
             const emailSentConfirmation = await sendRegistrationEmail(email, newToken);
 
             throw new AuthError('invalid or expired token. e-mail resent.');
+        }
+
+        if (!validToken.userId.equals(user._id)) {
+            throw new AuthError('invalid or expired token.');
         }
 
         user.isVerified = true;
@@ -55,14 +65,9 @@ export async function login(req, res, next) {
 export function renderAuthErrors(view) {
     return (err, req, res, next) => {
         if (err instanceof AuthError) {
-            return res.status(err.statusCode).render(view, {
-                errors: {
-                    email: {
-                        value: req.body.email,
-                        msg: err.message
-                    }
-                }
-            });
+            const { query, body } = req;
+
+            return res.status(err.statusCode).render(view, { msg: err.message, query, body });
         }
 
         next(err);
@@ -70,8 +75,14 @@ export function renderAuthErrors(view) {
 }
 
 export async function renderForgotPassword(req, res) {
+    const { query } = req;
+    const { token } = query;
+    const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
+
     res.render('auth/forgot', {
-        msg: req.query.token && 'set new password'
+        msg: token && (validToken ? 'set new password' : 'invalid or expired token. enter e-mail to resend.'),
+        isVerified: !!validToken,
+        query
     });
 }
 
@@ -80,7 +91,7 @@ export async function resetPassword(req, res) {
 
     if (!token) {
         const { email } = req.body;
-        const user = await User.findOne({ email }).exec();
+        const user = await User.findOne({ email });
 
         if (user) {
             const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
@@ -93,20 +104,21 @@ export async function resetPassword(req, res) {
         });
     } else {
         const { password } = req.body;
-        const existingToken = token && await Token.findOne({ token, purpose: TokenPurpose.PasswordReset }).exec();
+        const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
-        if (!existingToken) {
+        if (!validToken) {
             throw new AuthError('invalid or expired token. enter e-mail to resend.');
         }
 
-        const user = await User.findById(existingToken.userId).exec();
+        const user = await User.findById(validToken.userId);
 
         user.password = password;
+
         await user.save();
         await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
 
         res.render('auth/login', {
-            msg: `password changed. you can login now.`
+            msg: `password changed. login using the new password.`
         });
     }
 }
@@ -149,7 +161,7 @@ export function regenerateSession(req) {
 
 export async function authenticate(req, res, next) {
     const { userId, ip } = req.session;
-    const user = userId && await User.findById(userId).exec();
+    const user = userId && await User.findById(userId);
     const hasSessionCookie = req.signedCookies[sessionCookieName];
 
     if (user) {
@@ -169,8 +181,7 @@ export async function authenticate(req, res, next) {
 export function stopUnauthenticated(req, res, next) {
     if (!req.user) {
         res.status(401).render('auth/login', {
-            query: { callbackUrl: req.url },
-            msg: ''
+            query: { callbackUrl: req.url }
         });
     } else {
         next();

@@ -13,7 +13,13 @@ export function renderErrors(view) {
         if (errors.isEmpty()) {
             next();
         } else {
-            res.status(422).render(view, { errors: errors.mapped() });
+            const { query, body } = req;
+
+            res.status(422).render(view, {
+                errors: errors.mapped(),
+                query,
+                body
+            });
         }
     };
 };
@@ -67,8 +73,3 @@ export function passwordDifference(nameA = 'newPassword', nameB = 'oldPassword')
         .custom((newPassword, { req }) => newPassword !== req.body[nameB]);
 }
 
-export function dateChallenge(name = 'dateChallenge') {
-    return body(name, 'must match the format "DD/MM/YYYY"')
-        .if(body(name).exists())
-        .custom(value => value === moment().format('DD/MM/YYYY'));
-}

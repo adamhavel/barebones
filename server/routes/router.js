@@ -6,12 +6,6 @@ import settings from './settings.js';
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-    res.locals.query = req.query;
-    res.locals.body = req.body;
-    next();
-});
-
 router.use(home);
 router.use(auth);
 router.use(settings);
