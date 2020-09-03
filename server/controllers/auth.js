@@ -9,13 +9,14 @@ const {
 } = process.env;
 
 export async function renderLogin(req, res) {
-    const { query } = req;
+    const { query, body } = req;
     const { token } = query;
     const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
 
     res.render('auth/login', {
         msg: token && (validToken ? 'login to verify your e-mail' : 'invalid or expired token. enter e-mail and password to resend.'),
-        query
+        query,
+        body
     });
 }
 
@@ -58,8 +59,12 @@ export async function login(req, res) {
     }
 
     populateSession(user._id, req);
-    // TODO: Only internal URLs.
-    res.redirect(callbackUrl ? decodeURI(callbackUrl) : routes('home'));
+
+    if (callbackUrl && /^\/[^/]/.test(decodeURI(callbackUrl))) {
+        return res.redirect(decodeURI(callbackUrl));
+    }
+
+    res.redirect(routes('home'));
 }
 
 export function renderAuthErrors(view) {
@@ -67,7 +72,11 @@ export function renderAuthErrors(view) {
         if (err instanceof AuthError) {
             const { query, body } = req;
 
-            return res.status(err.statusCode).render(view, { msg: err.message, query, body });
+            return res.status(err.statusCode).render(view, {
+                msg: err.message,
+                query,
+                body
+            });
         }
 
         next(err);
@@ -75,14 +84,15 @@ export function renderAuthErrors(view) {
 }
 
 export async function renderForgotPassword(req, res) {
-    const { query } = req;
+    const { query, body } = req;
     const { token } = query;
     const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
     res.render('auth/forgot', {
         msg: token && (validToken ? 'set new password' : 'invalid or expired token. enter e-mail to resend.'),
         isVerified: !!validToken,
-        query
+        query,
+        body
     });
 }
 

@@ -25,7 +25,7 @@ settings.route(routes('settings'))
         validate.passwordMatch('oldPassword'),
         validate.passwordDifference(),
         validate.passwordMatch(),
-        validate.renderErrors('settings/account'),
+        validate.renderErrors(render('settings/account')),
         ctrl.updateAccount
     );
 

@@ -5,10 +5,15 @@ import bcrypt from 'bcrypt';
 const TRIAL_LENGTH_DAYS = 14;
 const SALT_ROUNDS = 10;
 
+const UserRoles = Object.freeze({
+    Superadmin: 'superadmin',
+    Admin: 'admin'
+});
+
 const userSchema = new db.Schema({
     nickname: String,
     email: { type: String, unique: true },
-    roles: [{ type: 'String' }],
+    roles: [{ type: String, required: true, enum: Object.values(UserRoles) }],
     isVerified: { type: Boolean, default: false },
     isLocked: { type: Boolean, default: false },
     password: String,

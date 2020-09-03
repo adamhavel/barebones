@@ -15,7 +15,7 @@ auth.route(routes('auth/login'))
     .post(
         validate.email(),
         validate.password(),
-        validate.renderErrors('auth/login'),
+        validate.renderErrors(ctrl.renderLogin),
         ctrl.login,
         ctrl.renderAuthErrors('auth/login')
     );
@@ -27,7 +27,7 @@ auth.route(routes('auth/register'))
         validate.email(),
         validate.uniqueEmail(),
         validate.password(),
-        validate.renderErrors('auth/register'),
+        validate.renderErrors(render('auth/register')),
         ctrl.register
     );
 
@@ -37,7 +37,7 @@ auth.route(routes('auth/forgot'))
     .post(
         validate.email(),
         validate.password(),
-        validate.renderErrors('auth/forgot'),
+        validate.renderErrors(ctrl.renderForgotPassword),
         ctrl.resetPassword,
         ctrl.renderAuthErrors('auth/forgot')
     );

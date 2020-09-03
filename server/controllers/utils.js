@@ -1,6 +1,8 @@
 export function render(view) {
     return (req, res) => {
-        res.render(view);
+        const { query, body } = req;
+
+        res.render(view, { query, body });
     };
 };
 

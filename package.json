@@ -27,7 +27,7 @@
     "express-session": "^1.17.1",
     "express-validator": "^6.6.1",
     "moment": "^2.27.0",
-    "mongoose": "^5.10.1",
+    "mongoose": "^5.10.2",
     "nodemailer": "^6.4.11",
     "nunjucks": "^3.2.2",
     "passport": "^0.4.1",
@@ -35,14 +35,16 @@
     "turbolinks": "^5.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
-    "@babel/preset-env": "^7.11.0",
+    "@babel/core": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
     "jest": "^26.4.2",
     "nodemon": "^2.0.4"
   },
   "jest": {
     "testEnvironment": "jest-environment-node",
-    "setupFiles": ["<rootDir>/server/config/testSetup.js"]
+    "setupFiles": [
+      "<rootDir>/server/config/testSetup.js"
+    ]
   },
   "babel": {
     "presets": [

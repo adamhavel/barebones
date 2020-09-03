@@ -6,20 +6,15 @@ import User from '../models/user.js';
 const PASSWORD_MIN_LENGTH = 5;
 const { body } = validator;
 
-export function renderErrors(view) {
+export function renderErrors(callback) {
     return (req, res, next) => {
         const errors = validator.validationResult(req);
 
         if (errors.isEmpty()) {
             next();
         } else {
-            const { query, body } = req;
-
-            res.status(422).render(view, {
-                errors: errors.mapped(),
-                query,
-                body
-            });
+            res.status(422).locals.errors = errors.mapped();
+            callback(req, res, next);
         }
     };
 };
@@ -36,7 +31,7 @@ export function uniqueEmail(name = 'email') {
     return body(name)
         .if(body(name).exists())
         .custom(async email => {
-            const existingUser = await User.findOne({ email }).exec();
+            const existingUser = await User.findOne({ email });
 
             if (existingUser) {
                 throw new Error('already in use');
