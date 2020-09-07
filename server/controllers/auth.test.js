@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import i18n from 'i18n';
 
 import routes from '../config/routes.js';
 import * as ctrl from './auth.js';
@@ -11,11 +12,9 @@ jest.mock('../services/mail.js');
 jest.mock('../models/token.js');
 jest.mock('../models/user.js');
 
-let mockTokens = [];
-let mockUsers = [];
-const tokenStrings = [...Array(5)].map(() => crypto.randomBytes(8).toString('hex'));
+let mockTokens, mockUsers;
+const tokenStrings = [...Array(3)].map(() => crypto.randomBytes(8).toString('hex'));
 const res = mockRes();
-
 const email = 'jane.doe@example.com';
 const password = '12345';
 
@@ -91,7 +90,7 @@ describe('register', () => {
         expect(registrationToken).toBeDefined();
         expect(sendRegistrationEmail).toHaveBeenCalledWith(email, registrationToken.token);
         expect(res.render).toHaveBeenCalledWith('auth/register', {
-            msg: `e-mail was sent to ${email}. click on the link to verify.`
+            msg: i18n.__('auth.register.msg.email-sent', { email })
         });
     });
 
@@ -103,10 +102,10 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }));
+            }), res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('invalid e-mail or password');
+            expect(err.message).toBe(i18n.__('auth.login.msg.credentials-invalid'));
         }
     });
 
@@ -119,10 +118,10 @@ describe('login', () => {
                     email,
                     password: 'admin'
                 }
-            }));
+            }), res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('invalid e-mail or password');
+            expect(err.message).toBe(i18n.__('auth.login.msg.credentials-invalid'));
         }
     });
 
@@ -132,10 +131,10 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }));
+            }), res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('e-mail not verified. check e-mail.');
+            expect(err.message).toBe(i18n.__('auth.login.msg.account-not-verified'));
         }
     });
 
@@ -149,14 +148,14 @@ describe('login', () => {
                 query: {
                     token: 'foo'
                 }
-            }));
+            }), res);
         } catch(err) {
             const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId.value === user._id && purpose === TokenPurpose.EmailVerification);
 
             expect(registrationTokens).toHaveLength(2);
             expect(sendRegistrationEmail).toHaveBeenCalledWith(email, registrationTokens[1].token);
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('invalid or expired token. e-mail resent.');
+            expect(err.message).toBe(i18n.__('auth.login.msg.token-invalid'));
         }
     });
 
@@ -168,10 +167,10 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }));
+            }), res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('locked account');
+            expect(err.message).toBe(i18n.__('auth.login.msg.account-locked'));
         }
     });
 
@@ -188,10 +187,10 @@ describe('login', () => {
                 query: {
                     token: tokenA.token
                 }
-            }));
+            }), res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe('invalid or expired token.');
+            expect(err.message).toBe(i18n.__('auth.login.msg.token-not-owner'));
         }
     });
 

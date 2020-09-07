@@ -1,0 +1,61 @@
+{
+    "auth": {
+        "login": {
+            "heading": "Přihlašte se",
+            "msg": {
+                "credentials-invalid": "Pro zadaný e-mail a heslo jsme nenašli žádný účet.",
+                "account-locked": "Účet byl zablokován.",
+                "account-not-verified": "Účet zatím nebyl potvrzen. Podívejte se na e-mail.",
+                "token-invalid": "Odkaz už bohužel vypršel. Na e-mail vám byl zaslán nový.",
+                "token-not-owner": "Odkaz není platný.",
+                "token-valid-prompt": "Přihlašte se pro potvrzení Vašeho účtu.",
+                "token-invalid-prompt": "Odkaz už bohužel vypršel. Zadejte přihlašovací údaje a zašleme Vám nový."
+            },
+            "form": {
+                "submit": "Přihlásit"
+            },
+            "forgot-password-prompt": "Zapomněli jste heslo?"
+        },
+        "register": {
+            "heading": "Vytvořte účet",
+            "msg": {
+                "email-sent": "Na {{email}} byl poslán odkaz k ověření vašeho účtu."
+            },
+            "form": {
+                "submit": "Vytvořit účet"
+            }
+        },
+        "forgot": {
+            "heading": "Nové heslo",
+            "msg": {
+                "token-valid-prompt": "Nastavte Vaše nové heslo.",
+                "token-invalid-prompt": "Odkaz už bohužel vypršel. Zadejte Váš e-mail a zašleme Vám nový.",
+                "email-sent": "Na {{email}} byl poslán odkaz k nastavení nového hesla.",
+                "success": "Heslo úspěšně změněno. Přihlašte se s novými údaji."
+            },
+            "form": {
+                "submit": "Změnit heslo"
+            }
+        }
+    },
+    "nav": {
+        "home": "Úvod",
+        "login": "Přihlásit",
+        "logout": "Odhlásit",
+        "register": "Vytvořit účet",
+        "settings": "Nastavení"
+    },
+    "common": {
+        "form": {
+            "email": "E-mail",
+            "password": "Heslo",
+            "error": {
+                "email-invalid": "E-mail musí být platný.",
+                "email-empty": "E-mail musí být vyplněn.",
+                "email-not-available": "Zadaný e-mail už někdo používá.",
+                "password-length": "Heslo musí mít alespoň pět znaků.",
+                "password-invalid": "Heslo se neshoduje."
+            }
+        }
+    }
+}

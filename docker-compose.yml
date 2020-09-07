@@ -21,7 +21,7 @@ services:
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     volumes:
-      - ./data:/data/db
+      - ./data/db:/data/db
 
   nginx:
     image: nginx:1.19

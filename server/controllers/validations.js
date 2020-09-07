@@ -1,3 +1,4 @@
+import i18n from 'i18n';
 import validator from 'express-validator';
 import moment from 'moment';
 
@@ -20,51 +21,62 @@ export function renderErrors(callback) {
 };
 
 export function email(name = 'email') {
-    return body(name, 'must be valid')
-        .if(body(name).exists())
-        .notEmpty().withMessage('must not be empty')
-        .isEmail()
-        .normalizeEmail();
+    return async (req, res, next) => {
+        await body(name)
+            .if(body(name).exists())
+            .notEmpty()
+            .withMessage(i18n.__('common.form.error.email-empty'))
+            .isEmail()
+            .withMessage(i18n.__('common.form.error.email-invalid'))
+            .normalizeEmail()
+            .run(req);
+
+        next();
+    }
 }
 
 export function uniqueEmail(name = 'email') {
-    return body(name)
-        .if(body(name).exists())
-        .custom(async email => {
-            const existingUser = await User.findOne({ email });
+    return async (req, res, next) => {
+        await body(name)
+            .if(body(name).exists())
+            .custom(async email => {
+                if (await User.findOne({ email })) {
+                    throw new Error(i18n.__('common.form.error.email-not-available'));
+                }
 
-            if (existingUser) {
-                throw new Error('already in use');
-            } else {
                 return true;
-            }
-        });
+            })
+            .run(req);
+
+        next();
+    }
 }
 
 export function password(name = 'password') {
-    return body(name, 'must be at least 5 chars long')
-        .if(body(name).exists())
-        .isLength({ min: PASSWORD_MIN_LENGTH });
+    return async (req, res, next) => {
+        await body(name)
+            .if(body(name).exists())
+            .isLength({ min: PASSWORD_MIN_LENGTH })
+            .withMessage(i18n.__('common.form.error.password-length'))
+            .run(req);
+
+        next();
+    }
 }
 
 export function passwordMatch(name = 'password') {
-    return body(name)
-        .if(body(name).exists())
-        .custom(async (password, { req }) => {
-            const passwordMatches = await req.user.matchesPassword(password);
+    return async (req, res, next) => {
+        await body(name)
+            .if(body(name).exists())
+            .custom(async password => {
+                if (!(await req.user.matchesPassword(password))) {
+                    throw new Error(i18n.__('common.form.error.password-invalid'));
+                }
 
-            if (!passwordMatches) {
-                throw new Error('invalid password');
-            } else {
                 return true;
-            }
-        });
-}
+            })
+            .run(req);
 
-export function passwordDifference(nameA = 'newPassword', nameB = 'oldPassword') {
-    return body(nameA, 'are the same')
-        .if(body(nameA).exists())
-        .if(body(nameB).exists())
-        .custom((newPassword, { req }) => newPassword !== req.body[nameB]);
+        next();
+    }
 }
-

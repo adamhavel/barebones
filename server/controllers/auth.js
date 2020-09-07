@@ -1,3 +1,5 @@
+import i18n from 'i18n';
+
 import routes from '../config/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
@@ -14,7 +16,7 @@ export async function renderLogin(req, res) {
     const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
 
     res.render('auth/login', {
-        msg: token && (validToken ? 'login to verify your e-mail' : 'invalid or expired token. enter e-mail and password to resend.'),
+        msg: token && (validToken ? i18n.__('auth.login.msg.token-valid-prompt') : i18n.__('auth.login.msg.token-invalid-prompt')),
         query,
         body
     });
@@ -27,15 +29,15 @@ export async function login(req, res) {
     const matchesPassword = await user?.matchesPassword(password);
 
     // Invalid e-mail or password.
-    if (!matchesPassword) throw new AuthError('invalid e-mail or password');
+    if (!matchesPassword) throw new AuthError(i18n.__('auth.login.msg.credentials-invalid'));
 
     // User is locked.
-    if (user.isLocked) throw new AuthError('locked account');
+    if (user.isLocked) throw new AuthError(i18n.__('auth.login.msg.account-locked'));
 
     // User not yet verified.
     if (!user.isVerified) {
         // No token provided.
-        if (!token) throw new AuthError('e-mail not verified. check e-mail.');
+        if (!token) throw new AuthError(i18n.__('auth.login.msg.account-not-verified'));
 
         const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
 
@@ -45,11 +47,11 @@ export async function login(req, res) {
             // TODO: Don't wait for confirmation.
             const emailSentConfirmation = await sendRegistrationEmail(email, newToken);
 
-            throw new AuthError('invalid or expired token. e-mail resent.');
+            throw new AuthError(i18n.__('auth.login.msg.token-invalid'));
         }
 
         if (!validToken.userId.equals(user._id)) {
-            throw new AuthError('invalid or expired token.');
+            throw new AuthError(i18n.__('auth.login.msg.token-not-owner'));
         }
 
         user.isVerified = true;
@@ -89,7 +91,7 @@ export async function renderForgotPassword(req, res) {
     const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
     res.render('auth/forgot', {
-        msg: token && (validToken ? 'set new password' : 'invalid or expired token. enter e-mail to resend.'),
+        msg: token && (validToken ? i18n.__('auth.forgot.msg.token-valid-prompt') : i18n.__('auth.forgot.msg.token-invalid-prompt')),
         isVerified: !!validToken,
         query,
         body
@@ -110,14 +112,14 @@ export async function resetPassword(req, res) {
         }
 
         res.render('auth/forgot', {
-            msg: `e-mail was sent to ${email}. click on the link to reset password.`
+            msg: i18n.__('auth.forgot.msg.email-sent', { email })
         });
     } else {
         const { password } = req.body;
         const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
         if (!validToken) {
-            throw new AuthError('invalid or expired token. enter e-mail to resend.');
+            throw new AuthError(i18n.__('auth.forgot.msg.token-invalid-prompt'));
         }
 
         const user = await User.findById(validToken.userId);
@@ -128,7 +130,7 @@ export async function resetPassword(req, res) {
         await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
 
         res.render('auth/login', {
-            msg: `password changed. login using the new password.`
+            msg: i18n.__('auth.forgot.msg.success')
         });
     }
 }
@@ -146,7 +148,7 @@ export async function register(req, res) {
     const emailSentConfirmation = await sendRegistrationEmail(email, token);
 
     res.render('auth/register', {
-        msg: `e-mail was sent to ${email}. click on the link to verify.`
+        msg: i18n.__('auth.register.msg.email-sent', { email })
     });
 }
 

@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
 import db from 'mongoose';
+import i18n from 'i18n';
 import url from 'url';
 
 import { authenticate } from './controllers/auth.js';
@@ -51,6 +52,15 @@ const templateEnv = nunjucks.configure(templateDir, templateOptions);
 templateEnv.addGlobal('routes', routes);
 
 
+// I18N
+i18n.configure({
+    directory: 'server/locales',
+    defaultLocale: 'cs',
+    objectNotation: true,
+    updateFiles: false,
+});
+
+
 // Database
 const dbUrl = `mongodb://mongo:${dbPort}/${dbName}`;
 const dbOptions = {
@@ -82,6 +92,7 @@ db.connect(dbUrl, dbOptions).then(db => {
     }));
     app.use(cookieParser(cookieSecret));
     app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(i18n.init);
     app.use(authenticate);
     app.use(urlGenerator(servername));
     app.use(router);

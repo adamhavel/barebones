@@ -26,12 +26,11 @@
     "express": "5.0.0-alpha.8",
     "express-session": "^1.17.1",
     "express-validator": "^6.6.1",
+    "i18n": "^0.13.2",
     "moment": "^2.27.0",
     "mongoose": "^5.10.2",
     "nodemailer": "^6.4.11",
     "nunjucks": "^3.2.2",
-    "passport": "^0.4.1",
-    "passport-local": "^1.0.0",
     "turbolinks": "^5.2.0"
   },
   "devDependencies": {

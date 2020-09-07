@@ -23,7 +23,6 @@ settings.route(routes('settings'))
         validate.uniqueEmail(),
         validate.password('newPassword'),
         validate.passwordMatch('oldPassword'),
-        validate.passwordDifference(),
         validate.passwordMatch(),
         validate.renderErrors(render('settings/account')),
         ctrl.updateAccount

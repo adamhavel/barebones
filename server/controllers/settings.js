@@ -13,14 +13,17 @@ export async function updateAccount(req, res, next) {
             await Session.cleanSessions(req.user._id, req.session.id);
             await regenerateSession(req);
             break;
+
         case 'email':
             req.user.email = req.body.email;
             req.user = await req.user.save();
             break;
+
         case 'delete':
             // TODO: Delete all tokens.
             await User.findByIdAndDelete(req.user._id);
             return logout(req, res);
+
     }
 
     res.render('settings/account', {

@@ -7,20 +7,22 @@
 {%- endmacro %}
 
 {% block content %}
-<h1>Forgotten password</h1>
+<h1>{{ __('auth.forgot.heading') }}</h1>
 <form action="{{ routes('auth/forgot') }}{{ queryString(query) if (query and isVerified) }}" method="post">
     {% if isVerified %}
-        <label>
-            <span>Password {{ errors.password.msg }}:</span>
-            <input type="password" name="password" />
-        </label>
-        <button>Reset password</button>
+        <div>
+            <label for="password">{{ __('common.form.password') }}</label>
+            <input type="password" name="password" id="password" />
+            {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
+        </div>
+        <button>{{ __('auth.forgot.form.submit') }}</button>
     {% else %}
-        <label>
-            <span>E-mail {{ errors.email.msg }}:</span>
-            <input type="email" name="email" value="{{ body.email }}" />
-        </label>
-        <button>Reset password</button>
+        <div>
+            <label for="email">{{ __('common.form.email') }}</label>
+            <input type="email" name="email" id="email" value="{{ body.email }}" />
+            {% if errors.email %}<p>{{ errors.email.msg }}</p>{% endif %}
+        </div>
+        <button>{{ __('auth.forgot.form.submit') }}</button>
     {% endif %}
 </form>
 {% endblock %}

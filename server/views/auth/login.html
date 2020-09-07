@@ -7,17 +7,19 @@
 {%- endmacro %}
 
 {% block content %}
-<h1>Login</h1>
+<h1>{{ __('auth.login.heading') }}</h1>
 <form action="{{ routes('auth/login') }}{{ queryString(query) if query }}" method="post">
-    <label>
-        <span>E-mail {{ errors.email.msg }}:</span>
-        <input type="email" name="email" value="{{ body.email }}" />
-    </label>
-    <label>
-        <span>Password {{ errors.password.msg }}:</span>
-        <input type="password" name="password" />
-    </label>
-    <button>Login</button>
+    <div>
+        <label for="email">{{ __('common.form.email') }}</label>
+        <input type="email" name="email" id="email" value="{{ body.email }}" />
+        {% if errors.email %}<p>{{ errors.email.msg }}</p>{% endif %}
+    </div>
+    <div>
+        <label for="password">{{ __('common.form.password') }}</label>
+        <input type="password" name="password" id="password" />
+        {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
+    </div>
+    <button>{{ __('auth.login.form.submit') }}</button>
 </form>
-<p><a href="{{ routes('auth/forgot') }}">Forgot password?</a></p>
+<p><a href="{{ routes('auth/forgot') }}">{{ __('auth.login.forgot-password-prompt') }}</a></p>
 {% endblock %}

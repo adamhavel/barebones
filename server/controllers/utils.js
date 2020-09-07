@@ -1,3 +1,5 @@
+import i18n from 'i18n';
+
 export function render(view) {
     return (req, res) => {
         const { query, body } = req;
