@@ -68,7 +68,6 @@ const dbOptions = {
     useNewUrlParser: true,
 };
 
-
 db.connect(dbUrl, dbOptions).then(db => {
 
     // Middleware

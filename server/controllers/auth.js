@@ -69,22 +69,6 @@ export async function login(req, res) {
     res.redirect(routes('home'));
 }
 
-export function renderAuthErrors(view) {
-    return (err, req, res, next) => {
-        if (err instanceof AuthError) {
-            const { query, body } = req;
-
-            return res.status(err.statusCode).render(view, {
-                msg: err.message,
-                query,
-                body
-            });
-        }
-
-        next(err);
-    }
-}
-
 export async function renderForgotPassword(req, res) {
     const { query, body } = req;
     const { token } = query;
@@ -122,6 +106,7 @@ export async function resetPassword(req, res) {
             throw new AuthError(i18n.__('auth.forgot.msg.token-invalid-prompt'));
         }
 
+        // TODO: Check if user exists.
         const user = await User.findById(validToken.userId);
 
         user.password = password;

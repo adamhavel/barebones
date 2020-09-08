@@ -1,14 +1,14 @@
 const routes = {
     home: '',
     auth: {
-        root: 'account',
-        login: 'login',
-        logout: 'logout',
-        register: 'register',
-        forgot: 'forgot-password'
+        root: 'ucet',
+        login: 'prihlasit',
+        logout: 'odhlasit',
+        register: 'vytvorit',
+        forgot: 'zapomenute-heslo'
     },
     settings: {
-        root: 'settings',
+        root: 'nastaveni',
     },
 };
 

@@ -1,26 +1,27 @@
 import crypto from 'crypto';
 import i18n from 'i18n';
+import db from 'mongoose';
 
 import routes from '../config/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
-import { mockReq, mockRes } from './utils.js';
 
 jest.mock('../services/mail.js');
 jest.mock('../models/token.js');
 jest.mock('../models/user.js');
 
 let mockTokens, mockUsers;
-const tokenStrings = [...Array(3)].map(() => crypto.randomBytes(8).toString('hex'));
+const tokenStrings = [...Array(5)].map(() => crypto.randomBytes(8).toString('hex'));
+const { ObjectId } = db.Types;
 const res = mockRes();
 const email = 'jane.doe@example.com';
 const password = '12345';
 
 User.create.mockImplementation(({ email, password }) => {
     let user = {
-        _id: mockUsers.length + 1,
+        _id: ObjectId(),
         email,
         password,
         isVerified: false,
@@ -46,14 +47,9 @@ User.findById.mockImplementation(id => {
 
 Token.create.mockImplementation(({ userId, purpose }) => {
     let token = {
-        _id: mockTokens.length + 1,
+        _id: ObjectId(),
         token: tokenStrings[mockTokens.length],
-        userId: {
-            value: userId,
-            equals(id) {
-                return this.value === id;
-            }
-        },
+        userId,
         purpose
     };
 
@@ -67,7 +63,7 @@ Token.findOne.mockImplementation(({ token, purpose }) => {
 });
 
 Token.deleteAll.mockImplementation((id, tokenPurpose) => {
-    mockTokens = mockTokens.filter(({ userId, purpose }) => !(userId.value === id && purpose === tokenPurpose));
+    mockTokens = mockTokens.filter(({ userId, purpose }) => !(userId === id && purpose === tokenPurpose));
 
     return Promise.resolve();
 });
@@ -80,11 +76,11 @@ beforeEach(() => {
 
 describe('register', () => {
 
-    test('should create token, send registration email and render register form', async () => {
+    test('should create token, send registration e-mail and render register form', async () => {
         await ctrl.register(mockReq({ body: { email, password } }), res);
 
         const user = mockUsers.find(user => user.email === email && user.password === password);
-        const registrationToken = mockTokens.find(({ userId, purpose }) => userId.value === user._id && purpose === TokenPurpose.EmailVerification);
+        const registrationToken = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.EmailVerification);
 
         expect(user).toBeDefined();
         expect(registrationToken).toBeDefined();
@@ -97,6 +93,40 @@ describe('register', () => {
 });
 
 describe('login', () => {
+
+    test('should render login form with prompt to enter e-mail and password if token is invalid', async () => {
+        const user = await User.create({ email, password });
+        const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+        const query = {
+            token: 'foo'
+        };
+        const req = mockReq({ query });
+
+        await ctrl.renderLogin(req, res);
+
+        expect(res.render).toHaveBeenCalledWith('auth/login', {
+            msg: i18n.__('auth.login.msg.token-invalid-prompt'),
+            body: {},
+            query
+        });
+    });
+
+    test('should render login form with prompt to login if token is valid', async () => {
+        const user = await User.create({ email, password });
+        const verificationToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+        const query = {
+            token: verificationToken.token
+        };
+        const req = mockReq({ query });
+
+        await ctrl.renderLogin(req, res);
+
+        expect(res.render).toHaveBeenCalledWith('auth/login', {
+            msg: i18n.__('auth.login.msg.token-valid-prompt'),
+            body: {},
+            query
+        });
+    });
 
     test('should throw error if no user found', async () => {
         try {
@@ -138,7 +168,7 @@ describe('login', () => {
         }
     });
 
-    test('should throw error and send new token via email if token is invalid or expired', async () => {
+    test('should throw error and send new token via e-mail if token is invalid or expired', async () => {
         const user = await User.create({ email, password });
         const token = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
 
@@ -150,7 +180,7 @@ describe('login', () => {
                 }
             }), res);
         } catch(err) {
-            const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId.value === user._id && purpose === TokenPurpose.EmailVerification);
+            const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.EmailVerification);
 
             expect(registrationTokens).toHaveLength(2);
             expect(sendRegistrationEmail).toHaveBeenCalledWith(email, registrationTokens[1].token);
@@ -210,7 +240,7 @@ describe('login', () => {
         });
 
         await ctrl.login(req, res);
-        const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId.value === userB._id && purpose === TokenPurpose.EmailVerification);
+        const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.EmailVerification);
 
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
@@ -254,7 +284,121 @@ describe('login', () => {
 
 });
 
-describe('authenticate', () => {
+describe('forgot password', () => {
+
+    test('should render forgot password form with prompt to enter e-mail if token is invalid', async () => {
+        const user = await User.create({ email, password });
+        const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
+        const query = {
+            token: 'foo'
+        };
+        const req = mockReq({ query });
+
+        await ctrl.renderForgotPassword(req, res);
+
+        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+            msg: i18n.__('auth.forgot.msg.token-invalid-prompt'),
+            isVerified: false,
+            body: {},
+            query
+        });
+    });
+
+    test('should render forgot password form with prompt to set new password if token is valid', async () => {
+        const user = await User.create({ email, password });
+        const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
+        const query = {
+            token: resetToken.token
+        };
+        const req = mockReq({ query });
+
+        await ctrl.renderForgotPassword(req, res);
+
+        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+            msg: i18n.__('auth.forgot.msg.token-valid-prompt'),
+            isVerified: true,
+            body: {},
+            query
+        });
+    });
+
+    test('should render forgot password form with success message even though e-mail is not used', async () => {
+        const req = mockReq({
+            body: { email }
+        });
+
+        await ctrl.resetPassword(req, res);
+
+        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+            msg: i18n.__('auth.forgot.msg.email-sent', { email })
+        });
+    });
+
+    test('should render forgot password form with success message and send new password reset token via e-mail', async () => {
+        const user = await User.create({ email, password });
+        const req = mockReq({
+            body: { email }
+        });
+
+        await ctrl.resetPassword(req, res);
+
+        const resetToken = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.PasswordReset);
+
+        expect(resetToken).toBeDefined();
+        expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, resetToken.token);
+        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+            msg: i18n.__('auth.forgot.msg.email-sent', { email })
+        });
+    });
+
+    test('should throw error if provided token is invalid or expired', async () => {
+        const user = await User.create({ email, password });
+        const req = mockReq({
+            body: { password },
+            query: {
+                token: 'foo'
+            }
+        });
+
+        try {
+            await ctrl.resetPassword(req, res);
+        } catch(err) {
+            expect(err.statusCode).toBe(401);
+            expect(err.message).toBe(i18n.__('auth.forgot.msg.token-invalid-prompt'));
+        }
+    });
+
+    test('should change user password, render login form and delete all password reset tokens if token is valid', async () => {
+        const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
+        const userB = await User.create({ email, password });
+        const tokenA = await Token.create({ userId: userA._id, purpose: TokenPurpose.EmailVerification });
+        const tokenB = await Token.create({ userId: userB._id, purpose: TokenPurpose.PasswordReset });
+        const tokenC = await Token.create({ userId: userB._id, purpose: TokenPurpose.PasswordReset });
+        const tokenD = await Token.create({ userId: userB._id, purpose: TokenPurpose.AccountCancellation });
+        const newPassword = 'foo';
+        const req = mockReq({
+            body: { password: newPassword },
+            query: {
+                token: tokenC.token
+            }
+        });
+
+        await ctrl.resetPassword(req, res);
+
+        const userBResetTokens = mockTokens.filter(({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.PasswordReset);
+
+        expect(userBResetTokens).toHaveLength(0);
+        expect(mockTokens).toHaveLength(2);
+        expect(userB.save).toHaveBeenCalled();
+        expect(userB.password).toBe(newPassword);
+        expect(res.render).toHaveBeenCalledWith('auth/login', {
+            msg: i18n.__('auth.forgot.msg.success')
+        });
+    });
+
+});
+
+describe('authentication', () => {
 
     test('should populate request object with user if session is active', async () => {
         const user = await User.create({ email, password });
@@ -309,10 +453,6 @@ describe('authenticate', () => {
         expect(res.redirect).toHaveBeenCalledWith(routes('home'));
         expect(next).not.toHaveBeenCalled();
     });
-
-});
-
-describe('stopUnauthenticated', () => {
 
     test('should return 401 and render login form with callback URL if user is not authenticated', () => {
         const url = '/foo';

@@ -1,4 +1,4 @@
-import i18n from 'i18n';
+import { UserError } from '../models/error.js';
 
 export function render(view) {
     return (req, res) => {
@@ -8,27 +8,24 @@ export function render(view) {
     };
 };
 
+export function renderUserError(view) {
+    return (err, req, res, next) => {
+        if (err instanceof UserError) {
+            const { query, body } = req;
+
+            return res.status(err.statusCode).render(view, {
+                msg: err.message,
+                query,
+                body
+            });
+        }
+
+        next(err);
+    }
+}
+
 export function redirect(route) {
     return (req, res) => {
         res.redirect(route);
-    };
-};
-
-export function mockReq(data) {
-    return Object.assign({
-        query: {},
-        body: {},
-        session: {},
-        signedCookies: {}
-    }, data);
-};
-
-export function mockRes() {
-    return {
-        status: jest.fn().mockReturnThis(),
-        render: jest.fn(),
-        redirect: jest.fn(),
-        clearCookie: jest.fn(),
-        locals: {}
     };
 };

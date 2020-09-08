@@ -3,7 +3,7 @@ import express from 'express';
 import routes from '../config/routes.js';
 import * as validate from '../controllers/validations.js';
 import * as ctrl from '../controllers/auth.js';
-import { render, redirect } from '../controllers/utils.js';
+import { render, redirect, renderUserError } from '../controllers/utils.js';
 
 const auth = express.Router();
 
@@ -17,7 +17,7 @@ auth.route(routes('auth/login'))
         validate.password(),
         validate.renderErrors(ctrl.renderLogin),
         ctrl.login,
-        ctrl.renderAuthErrors('auth/login')
+        renderUserError('auth/login')
     );
 
 auth.route(routes('auth/register'))
@@ -39,7 +39,7 @@ auth.route(routes('auth/forgot'))
         validate.password(),
         validate.renderErrors(ctrl.renderForgotPassword),
         ctrl.resetPassword,
-        ctrl.renderAuthErrors('auth/forgot')
+        renderUserError('auth/forgot')
     );
 
 auth.route(routes('auth/logout'))
