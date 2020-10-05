@@ -12,11 +12,11 @@ const sessionSchema = new db.Schema({
 });
 
 sessionSchema.statics.cleanSessions = function(userId, currentSessionId) {
-    return this.deleteMany({ 'session.userId': userId, _id: { $ne: currentSessionId } }).exec();
+    return this.deleteMany({ 'session.userId': userId, _id: { $ne: currentSessionId } });
 };
 
 sessionSchema.statics.getActiveSessions = function(userId) {
-    return this.find({ 'session.userId': userId }).exec();
+    return this.find({ 'session.userId': userId });
 };
 
 export default db.model('Session', sessionSchema);

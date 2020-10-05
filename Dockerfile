@@ -5,6 +5,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm i
 
-COPY server server/
+COPY src ./src/
 
 CMD ["npm", "start"]

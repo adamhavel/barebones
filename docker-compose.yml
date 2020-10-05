@@ -1,8 +1,10 @@
 version: '3'
+
 services:
 
   app:
     build: .
+    tty: true
     environment:
       - NODE_ENV
       - NODE_PORT
@@ -12,16 +14,18 @@ services:
       - MONGO_DB
       - SERVERNAME
     volumes:
-      - ./server:/app/server
+      - ./src:/app/src
+      - static-assets:/app/build/client
     depends_on:
       - mongo
 
   mongo:
     image: mongo:4.4
+    command: --quiet
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     volumes:
-      - ./data/db:/data/db
+      - ./data/mongo:/data/db
 
   nginx:
     image: nginx:1.19
@@ -31,8 +35,36 @@ services:
       - SERVERNAME
     volumes:
       - ./config/nginx.conf:/etc/nginx/templates/default.conf.template
-      - ./client:/app/client
+      - static-assets:/app/public
     ports:
       - 80:80
     depends_on:
       - app
+
+  prometheus:
+    image: prom/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  static-assets:

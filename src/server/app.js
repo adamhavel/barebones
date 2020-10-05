@@ -13,6 +13,7 @@ import { authenticate } from './controllers/auth.js';
 import urlGenerator from './services/urlGenerator.js';
 import router from './routes/router.js';
 import routes from './config/routes.js';
+import { initMetrics } from './services/metrics.js';
 
 
 // Environment
@@ -25,9 +26,6 @@ const {
     MONGO_DB: dbName,
     SERVERNAME: servername
 } = process.env;
-
-
-// App setup
 const app = express();
 const SessionStore = sessionStoreFactory(session);
 
@@ -35,40 +33,29 @@ app.set('trust proxy', true);
 app.set('view engine', 'html');
 app.set('x-powered-by', false);
 
-app.listen(port, () => {
-    console.log(`Listening at http://localhost:${port} in ${env} mode.`)
-});
+nunjucks
+    .configure('src/server/views', {
+        autoescape: true,
+        express: app,
+        noCache: true,
+    })
+    .addGlobal('routes', routes);
 
-
-// Templating
-const templateDir = 'server/views';
-const templateOptions = {
-    autoescape: true,
-    express: app,
-    noCache: true,
-};
-const templateEnv = nunjucks.configure(templateDir, templateOptions);
-
-templateEnv.addGlobal('routes', routes);
-
-
-// I18N
 i18n.configure({
-    directory: 'server/locales',
+    directory: 'src/server/locales',
     defaultLocale: 'cs',
     objectNotation: true,
     updateFiles: false,
 });
 
+(async function() {
 
-// Database
-const dbUrl = `mongodb://mongo:${dbPort}/${dbName}`;
-const dbOptions = {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-};
+    await db.connect(`mongodb://mongo:${dbPort}/${dbName}`, {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+    });
 
-db.connect(dbUrl, dbOptions).then(db => {
+    initMetrics();
 
     // Middleware
     app.use(compression());
@@ -112,6 +99,10 @@ db.connect(dbUrl, dbOptions).then(db => {
         res.status(404).render('errors/not-found');
     });
 
-});
+    app.listen(port, () => {
+        console.log(`Listening at http://localhost:${port} in ${env} mode.`)
+    });
+
+})();
 
 export default app;

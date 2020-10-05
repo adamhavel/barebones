@@ -1,7 +1,7 @@
 import i18n from 'i18n';
 
 i18n.configure({
-    directory: 'server/locales',
+    directory: 'src/server/locales',
     defaultLocale: 'cs',
     objectNotation: true,
     updateFiles: false,

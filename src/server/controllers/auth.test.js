@@ -6,11 +6,13 @@ import routes from '../config/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
+import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
 jest.mock('../services/mail.js');
 jest.mock('../models/token.js');
 jest.mock('../models/user.js');
+jest.mock('../models/session.js');
 
 let mockTokens, mockUsers;
 const tokenStrings = [...Array(5)].map(() => crypto.randomBytes(8).toString('hex'));
@@ -368,7 +370,7 @@ describe('forgot password', () => {
         }
     });
 
-    test('should change user password, render login form and delete all password reset tokens if token is valid', async () => {
+    test('should change user password, render login form, delete all password reset tokens and clean all user sessions if token is valid', async () => {
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });
         const tokenA = await Token.create({ userId: userA._id, purpose: TokenPurpose.EmailVerification });
@@ -391,6 +393,7 @@ describe('forgot password', () => {
         expect(mockTokens).toHaveLength(2);
         expect(userB.save).toHaveBeenCalled();
         expect(userB.password).toBe(newPassword);
+        expect(Session.cleanSessions).toHaveBeenCalledWith(userB._id);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             msg: i18n.__('auth.forgot.msg.success')
         });

@@ -4,7 +4,9 @@ import routes from '../config/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
+import Session from '../models/session.js';
 import { AuthError, ApplicationError } from '../models/error.js';
+import { registeredUsers } from '../services/metrics.js';
 
 const {
     NODE_SESSION_COOKIE: sessionCookieName,
@@ -113,6 +115,7 @@ export async function resetPassword(req, res) {
 
         await user.save();
         await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
+        await Session.cleanSessions(user._id);
 
         res.render('auth/login', {
             msg: i18n.__('auth.forgot.msg.success')
@@ -132,6 +135,7 @@ export async function register(req, res) {
     // TODO: Don't wait for confirmation.
     const emailSentConfirmation = await sendRegistrationEmail(email, token);
 
+    registeredUsers.inc();
     res.render('auth/register', {
         msg: i18n.__('auth.register.msg.email-sent', { email })
     });
