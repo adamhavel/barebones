@@ -53,6 +53,7 @@ i18n.configure({
     await db.connect(`mongodb://mongo:${dbPort}/${dbName}`, {
         useUnifiedTopology: true,
         useNewUrlParser: true,
+        useCreateIndex: true
     });
 
     initMetrics();

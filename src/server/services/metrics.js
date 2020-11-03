@@ -1,7 +1,6 @@
-import prometheus from 'prom-client';
+import { Counter, Gauge, Summary, Histogram } from 'prom-client';
 import User from '../models/user.js';
 
-const { Counter, Gauge, Summary, Histogram } = prometheus;
 const PREFIX = 'app';
 
 export const requests = new Summary({

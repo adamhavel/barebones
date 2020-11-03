@@ -12,6 +12,9 @@ services:
       - NODE_COOKIE_SECRET
       - MONGO_PORT
       - MONGO_DB
+      - STRIPE_PUBLIC_KEY
+      - STRIPE_PRIVATE_KEY
+      - STRIPE_HOOK_SECRET
       - SERVERNAME
     volumes:
       - ./src:/app/src
@@ -28,7 +31,7 @@ services:
       - ./data/mongo:/data/db
 
   nginx:
-    image: nginx:1.19
+    image: nginx:alpine
     environment:
       - NGINX_ENTRYPOINT_QUIET_LOGS=1
       - NODE_PORT

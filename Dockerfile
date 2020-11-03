@@ -1,10 +1,9 @@
-FROM node:alpine AS build
+FROM node:15-alpine
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm i
-
-COPY src ./src/
+COPY src ./src
+RUN npm ci
 
 CMD ["npm", "start"]

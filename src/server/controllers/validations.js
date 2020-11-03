@@ -1,15 +1,14 @@
 import i18n from 'i18n';
-import validator from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import moment from 'moment';
 
 import User from '../models/user.js';
 
 const PASSWORD_MIN_LENGTH = 5;
-const { body } = validator;
 
 export function renderErrors(callback) {
     return (req, res, next) => {
-        const errors = validator.validationResult(req);
+        const errors = validationResult(req);
 
         if (errors.isEmpty()) {
             next();

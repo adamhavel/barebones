@@ -10,6 +10,9 @@ const routes = {
     settings: {
         root: 'nastaveni',
     },
+    payment: {
+        root: 'predplatne'
+    }
 };
 
 const route = function(path) {
