@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 import i18n from 'i18n';
 import db from 'mongoose';
+import moment from 'moment';
 
 import routes from '../config/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
-import User from '../models/user.js';
+import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
+import User, { SubscriptionStatus } from '../models/user.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
@@ -21,8 +23,31 @@ const res = mockRes();
 const email = 'jane.doe@example.com';
 const password = '12345';
 
+stripe.customers.create = jest.fn(({ email }) => {
+    const customer = {
+        email,
+        id: crypto.randomBytes(8).toString('hex')
+    };
+
+    return Promise.resolve(customer);
+});
+
+stripe.subscriptions.create = jest.fn(({ customer, items, trial_period_days }) => {
+    const trialStartsAt = moment();
+    const trialEndsAt = moment(trialStartsAt).add(trial_period_days, 'days');
+    const subscription = {
+        customer,
+        status: SubscriptionStatus.Trialing,
+        id: crypto.randomBytes(8).toString('hex'),
+        current_period_start: trialStartsAt.unix(),
+        current_period_end: trialEndsAt.unix()
+    };
+
+    return Promise.resolve(subscription);
+});
+
 User.create.mockImplementation(({ email, password }) => {
-    let user = {
+    const user = {
         _id: ObjectId(),
         email,
         password,
@@ -48,7 +73,7 @@ User.findById.mockImplementation(id => {
 });
 
 Token.create.mockImplementation(({ userId, purpose }) => {
-    let token = {
+    const token = {
         _id: ObjectId(),
         token: tokenStrings[mockTokens.length],
         userId,
@@ -226,7 +251,7 @@ describe('login', () => {
         }
     });
 
-    test('should verify and login user, redirect to home and delete all registration tokens if token is valid', async () => {
+    test('should verify and login user, start trial subscription, redirect to home and delete all registration tokens if token is valid', async () => {
         const purpose = TokenPurpose.EmailVerification;
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });
@@ -242,11 +267,18 @@ describe('login', () => {
         });
 
         await ctrl.login(req, res);
-        const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.EmailVerification);
+        const registrationTokens = mockTokens.filter(
+            ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.EmailVerification
+        );
 
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
+        expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
+        expect(userB.subscription.endsAt)
+            .toEqual(moment(userB.subscription.startsAt).add(TRIAL_PERIOD_DAYS, 'days').toDate());
+        expect(stripe.customers.create).toHaveBeenCalledWith({ email });
+        expect(stripe.subscriptions.create).toHaveBeenCalled();
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
         expect(res.redirect).toHaveBeenCalledWith(routes('home'));

@@ -1,15 +1,17 @@
 import i18n from 'i18n';
+import moment from 'moment';
 
 import routes from '../config/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
+import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import Session from '../models/session.js';
 import { AuthError, ApplicationError } from '../models/error.js';
-import { registeredUsers } from '../services/metrics.js';
 
 const {
     NODE_SESSION_COOKIE: sessionCookieName,
+    STRIPE_SUBSCRIPTION_ID: stripeSubscriptionId
 } = process.env;
 
 export async function renderLogin(req, res) {
@@ -56,7 +58,23 @@ export async function login(req, res) {
             throw new AuthError(i18n.__('auth.login.msg.token-not-owner'));
         }
 
+        // Start trial subscription.
+        const customer = await stripe.customers.create({ email });
+        const subscription = await stripe.subscriptions.create({
+            customer: customer.id,
+            items: [{ price: stripeSubscriptionId }],
+            trial_period_days: TRIAL_PERIOD_DAYS
+        });
+
         user.isVerified = true;
+        user.subscription = {
+            customer: customer.id,
+            status: subscription.status,
+            id: subscription.id,
+            endsAt: moment.unix(subscription.current_period_end).toDate(),
+            startsAt: moment.unix(subscription.current_period_start).toDate()
+        };
+
         await user.save();
         // Delete all tokens created during verification process.
         await Token.deleteAll(user._id, TokenPurpose.EmailVerification);
@@ -135,7 +153,6 @@ export async function register(req, res) {
     // TODO: Don't wait for confirmation.
     const emailSentConfirmation = await sendRegistrationEmail(email, token);
 
-    registeredUsers.inc();
     res.render('auth/register', {
         msg: i18n.__('auth.register.msg.email-sent', { email })
     });

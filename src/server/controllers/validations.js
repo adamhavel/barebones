@@ -6,7 +6,7 @@ import User from '../models/user.js';
 
 const PASSWORD_MIN_LENGTH = 5;
 
-export function renderErrors(callback) {
+export function renderFormErrors(callback) {
     return (req, res, next) => {
         const errors = validationResult(req);
 

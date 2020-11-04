@@ -1,28 +1,38 @@
 import db from 'mongoose';
-import moment from 'moment';
 import bcrypt from 'bcrypt';
 
-const TRIAL_LENGTH_DAYS = 14;
 const SALT_ROUNDS = 10;
 
-const UserRoles = Object.freeze({
+const UserRole = Object.freeze({
     Superadmin: 'superadmin',
     Admin: 'admin'
+});
+
+const SubscriptionStatus = Object.freeze({
+    Active: 'active',
+    PastDue: 'past_due',
+    Unpaid: 'unpaid',
+    Canceled: 'canceled',
+    Incomplete: 'incomplete',
+    IncompleteExpired: 'incomplete_expired',
+    Trialing: 'trialing'
 });
 
 const userSchema = new db.Schema({
     nickname: String,
     email: { type: String, unique: true },
-    roles: [{ type: String, required: true, enum: Object.values(UserRoles) }],
+    roles: [{ type: String, required: true, enum: Object.values(UserRole) }],
     isVerified: { type: Boolean, default: false },
     isLocked: { type: Boolean, default: false },
     password: String,
     registeredAt: { type: Date, default: Date.now },
     subscription: {
-        duePaymentAt: { type: Date },
-        isActive: { type: Boolean, default: false },
-        trialEndsAt: { type: Date, default() { return moment().add(TRIAL_LENGTH_DAYS, 'days').toDate() } },
-    },
+        id: { type: String },
+        customer: { type: String },
+        status: { type: String, enum: Object.values(SubscriptionStatus) },
+        startsAt: { type: Date },
+        endsAt: { type: Date }
+    }
 });
 
 userSchema.pre('save', async function() {
@@ -35,4 +45,6 @@ userSchema.methods.matchesPassword = async function(password) {
     return bcrypt.compare(password, this.password);
 }
 
-export default db.model('User', userSchema);
+const User = db.model('User', userSchema);
+
+export { User as default, SubscriptionStatus };
