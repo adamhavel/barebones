@@ -86,7 +86,7 @@ export async function login(req, res) {
         return res.redirect(decodeURI(callbackUrl));
     }
 
-    res.redirect(routes('home'));
+    res.redirect(routes('dashboard'));
 }
 
 export async function renderForgotPassword(req, res) {
@@ -162,7 +162,7 @@ export function logout(req, res) {
     req.session.destroy(err => {
         if (err) throw new ApplicationError(err);
 
-        res.redirect(routes('home'));
+        res.redirect(routes('landing'));
     });
 }
 
@@ -208,7 +208,7 @@ export function stopUnauthenticated(req, res, next) {
 
 export function stopAuthenticated(req, res, next) {
     if (req.user) {
-        res.redirect(routes('home'));
+        res.redirect(routes('dashboard'));
     } else {
         next();
     }

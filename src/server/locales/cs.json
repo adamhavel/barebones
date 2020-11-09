@@ -39,7 +39,8 @@
         }
     },
     "nav": {
-        "home": "Úvod",
+        "landing": "Úvod",
+        "dashboard": "Přehled",
         "login": "Přihlásit",
         "logout": "Odhlásit",
         "register": "Vytvořit účet",

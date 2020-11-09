@@ -1,5 +1,5 @@
 const routes = {
-    home: '',
+    landing: '',
     auth: {
         root: 'ucet',
         login: 'prihlasit',
@@ -7,12 +7,9 @@ const routes = {
         register: 'vytvorit',
         forgot: 'zapomenute-heslo'
     },
-    settings: {
-        root: 'nastaveni',
-    },
-    payment: {
-        root: 'predplatne'
-    }
+    settings: 'nastaveni',
+    subscription: 'clenstvi',
+    dashboard: 'prehled'
 };
 
 const route = function(path) {

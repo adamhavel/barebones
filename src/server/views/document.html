@@ -8,12 +8,13 @@
 <body>
     <header>
         <ul>
-            <li><a href="{{ routes('home') }}">{{ __('nav.home') }}</a></li>
             {% if not user %}
+                <li><a href="{{ routes('landing') }}">{{ __('nav.landing') }}</a></li>
                 <li><a href="{{ routes('auth/login') }}">{{ __('nav.login') }}</a></li>
                 <li><a href="{{ routes('auth/register') }}">{{ __('nav.register') }}</a></li>
             {% else %}
                 <li>Logged in as: {{ user.email }}</li>
+                <li><a href="{{ routes('dashboard') }}">{{ __('nav.dashboard') }}</a></li>
                 <li><a href="{{ routes('settings') }}">{{ __('nav.settings') }}</a></li>
                 <li><a href="{{ routes('auth/logout') }}">{{ __('nav.logout') }}</a></li>
             {% endif %}

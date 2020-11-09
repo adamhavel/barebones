@@ -251,7 +251,7 @@ describe('login', () => {
         }
     });
 
-    test('should verify and login user, start trial subscription, redirect to home and delete all registration tokens if token is valid', async () => {
+    test('should verify and login user, start trial subscription, redirect to dashboard and delete all registration tokens if token is valid', async () => {
         const purpose = TokenPurpose.EmailVerification;
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });
@@ -281,7 +281,7 @@ describe('login', () => {
         expect(stripe.subscriptions.create).toHaveBeenCalled();
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
-        expect(res.redirect).toHaveBeenCalledWith(routes('home'));
+        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
     });
 
     test('should login verified user and redirect to callback url', async () => {
@@ -301,7 +301,7 @@ describe('login', () => {
         expect(res.redirect).toHaveBeenCalledWith(callbackUrl);
     });
 
-    test('should login user and redirect to home if provided callback url is absolute', async () => {
+    test('should login user and redirect to dashboard if provided callback url is absolute', async () => {
         const user = await User.create({ email, password });
 
         user.isVerified = true;
@@ -313,7 +313,7 @@ describe('login', () => {
 
         await ctrl.login(req, res);
 
-        expect(res.redirect).toHaveBeenCalledWith(routes('home'));
+        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
     });
 
 });
@@ -485,7 +485,7 @@ describe('authentication', () => {
 
         expect(req.user).toBeUndefined();
         expect(req.session.destroy).toHaveBeenCalled();
-        expect(res.redirect).toHaveBeenCalledWith(routes('home'));
+        expect(res.redirect).toHaveBeenCalledWith(routes('landing'));
         expect(next).not.toHaveBeenCalled();
     });
 
