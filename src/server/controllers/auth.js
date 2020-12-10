@@ -1,11 +1,12 @@
 import i18n from 'i18n';
 import moment from 'moment';
 
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
+import { SubscriptionStatus } from '../models/subscription.js';
 import Session from '../models/session.js';
 import { AuthError, ApplicationError } from '../models/error.js';
 
@@ -58,21 +59,13 @@ export async function login(req, res) {
             throw new AuthError(i18n.__('auth.login.msg.token-not-owner'));
         }
 
-        // Start trial subscription.
         const customer = await stripe.customers.create({ email });
-        const subscription = await stripe.subscriptions.create({
-            customer: customer.id,
-            items: [{ price: stripeSubscriptionId }],
-            trial_period_days: TRIAL_PERIOD_DAYS
-        });
 
         user.isVerified = true;
         user.subscription = {
-            customer: customer.id,
-            status: subscription.status,
-            id: subscription.id,
-            endsAt: moment.unix(subscription.current_period_end).toDate(),
-            startsAt: moment.unix(subscription.current_period_start).toDate()
+            stripeCustomerId: customer.id,
+            status: SubscriptionStatus.Trialing,
+            endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
         };
 
         await user.save();

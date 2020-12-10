@@ -8,6 +8,7 @@ const {
     NODE_ENV: env,
     SERVERNAME: servername
 } = process.env;
+
 const router = express.Router();
 
 router.all('/ping', (req, res) => {

@@ -1,4 +1,4 @@
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 import { logout, regenerateSession } from './auth.js';

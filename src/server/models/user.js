@@ -1,21 +1,13 @@
 import db from 'mongoose';
 import bcrypt from 'bcrypt';
 
+import { subscriptionSchema as subscription } from './subscription.js';
+
 const SALT_ROUNDS = 10;
 
 const UserRole = Object.freeze({
     Superadmin: 'superadmin',
     Admin: 'admin'
-});
-
-const SubscriptionStatus = Object.freeze({
-    Active: 'active',
-    PastDue: 'past_due',
-    Unpaid: 'unpaid',
-    Canceled: 'canceled',
-    Incomplete: 'incomplete',
-    IncompleteExpired: 'incomplete_expired',
-    Trialing: 'trialing'
 });
 
 const userSchema = new db.Schema({
@@ -26,13 +18,7 @@ const userSchema = new db.Schema({
     isLocked: { type: Boolean, default: false },
     password: String,
     registeredAt: { type: Date, default: Date.now },
-    subscription: {
-        id: { type: String },
-        customer: { type: String },
-        status: { type: String, enum: Object.values(SubscriptionStatus) },
-        startsAt: { type: Date },
-        endsAt: { type: Date }
-    }
+    subscription
 });
 
 userSchema.pre('save', async function() {
@@ -47,4 +33,4 @@ userSchema.methods.matchesPassword = async function(password) {
 
 const User = db.model('User', userSchema);
 
-export { User as default, SubscriptionStatus };
+export { User as default, UserRole };

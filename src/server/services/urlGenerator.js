@@ -1,4 +1,4 @@
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 
 const context = {};
 

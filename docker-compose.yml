@@ -3,7 +3,9 @@ version: '3'
 services:
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile.app
     tty: true
     environment:
       - NODE_ENV
@@ -14,6 +16,7 @@ services:
       - MONGO_DB
       - STRIPE_PUBLIC_KEY
       - STRIPE_PRIVATE_KEY
+      - STRIPE_HOOK_PATH
       - STRIPE_HOOK_SECRET
       - STRIPE_SUBSCRIPTION_ID
       - SERVERNAME
@@ -25,9 +28,7 @@ services:
 
   mongo:
     image: mongo:4.4
-    command: --quiet
-    ports:
-      - ${MONGO_PORT}:${MONGO_PORT}
+    command: --quiet --logpath /dev/null
     volumes:
       - ./data/mongo:/data/db
 
@@ -44,33 +45,6 @@ services:
       - 80:80
     depends_on:
       - app
-
-  prometheus:
-    image: prom/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
-      - "--log.level=warn"
-    ports:
-      - 9090:9090
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./data/prometheus:/prometheus
-    depends_on:
-      - app
-
-  grafana:
-    image: grafana/grafana
-    ports:
-      - 3000:3000
-    volumes:
-      - ./config/grafana.ini:/etc/grafana/grafana.ini
-      - ./data/grafana:/var/lib/grafana
-    depends_on:
-      - prometheus
 
 volumes:
   static-assets:

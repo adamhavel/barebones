@@ -4,12 +4,13 @@ import * as validate from '../controllers/validations.js';
 import * as ctrl from '../controllers/settings.js';
 import { stopUnauthenticated } from '../controllers/auth.js';
 import { render } from '../controllers/utils.js';
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 import Session from '../models/session.js';
 
 const settings = express.Router();
 
-settings.route(routes('settings'))
+settings
+    .route(routes('settings'))
     .all(
         stopUnauthenticated,
         async (req, res, next) => {

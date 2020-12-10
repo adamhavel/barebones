@@ -1,9 +1,10 @@
 import { UserError } from '../models/error.js';
 
-export function render(view) {
+export function render(view, data = {}) {
     return (req, res) => {
         const { query, body } = req;
 
+        res.locals = { ...res.locals, ...data };
         res.render(view, { query, body });
     };
 };

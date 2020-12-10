@@ -1,0 +1,9 @@
+FROM cypress/browsers:node14.15.0-chrome86-ff82
+
+WORKDIR /app
+
+COPY config/cypress.json ./
+COPY src ./src
+
+RUN npm i --save-dev cypress mongoose
+RUN npx cypress verify

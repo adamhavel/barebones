@@ -1,5 +1,5 @@
 import express from 'express';
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 import { stopAuthenticated } from '../controllers/auth.js';
 import { render } from '../controllers/utils.js';
 

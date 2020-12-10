@@ -12,7 +12,7 @@ import url from 'url';
 import { authenticate } from './controllers/auth.js';
 import urlGenerator from './services/urlGenerator.js';
 import router from './routes/router.js';
-import routes from './config/routes.js';
+import routes from '../common/routes.js';
 import { initMetrics } from './services/metrics.js';
 
 

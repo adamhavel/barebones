@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+
+  app:
+    environment:
+      - NODE_ENV=development
+
+  mongo:
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    command: listen --forward-to app:${NODE_PORT}/${STRIPE_HOOK_PATH}
+    environment:
+      - STRIPE_API_KEY=${STRIPE_PRIVATE_KEY}
+      - STRIPE_DEVICE_NAME=docker
+    depends_on:
+      - app

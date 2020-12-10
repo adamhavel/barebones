@@ -8,7 +8,10 @@ const routes = {
         forgot: 'zapomenute-heslo'
     },
     settings: 'nastaveni',
-    subscription: 'clenstvi',
+    subscription: {
+        root: 'clenstvi',
+        'add-payment-method': 'zaplatit'
+    },
     dashboard: 'prehled'
 };
 

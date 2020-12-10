@@ -1,5 +1,27 @@
 {% extends "../document.html" %}
 
+{% block head %}
+<meta name="stripe-public-key" content="{{ stripePublicKey }}">
+<script src="https://js.stripe.com/v3/" defer></script>
+<script src="/js/checkout.js" type="module"></script>
+{% endblock %}
+
 {% block content %}
 <h1>Checkout</h1>
+
+<ul>
+    <li>Success: 4000002030000002</li>
+    <li>3D: 4000002500003155</li>
+    <li>Expired: 4000000000000069</li>
+</ul>
+
+<form id="stripe-checkout" method="post">
+    <fieldset>
+        <input type="text" id="stripe-billing-name" name="name" value="John Doe" required>
+    </fieldset>
+    <fieldset style="width: 400px;" id="stripe-card"></fieldset>
+    <p id="stripe-errors" role="alert"></p>
+    <button>Zaplatit</button>
+</form>
+
 {% endblock %}

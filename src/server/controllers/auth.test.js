@@ -3,11 +3,12 @@ import i18n from 'i18n';
 import db from 'mongoose';
 import moment from 'moment';
 
-import routes from '../config/routes.js';
+import routes from '../../common/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
-import User, { SubscriptionStatus } from '../models/user.js';
+import User from '../models/user.js';
+import { SubscriptionStatus } from '../models/subscription.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
@@ -23,28 +24,10 @@ const res = mockRes();
 const email = 'jane.doe@example.com';
 const password = '12345';
 
-stripe.customers.create = jest.fn(({ email }) => {
-    const customer = {
-        email,
-        id: crypto.randomBytes(8).toString('hex')
-    };
-
-    return Promise.resolve(customer);
-});
-
-stripe.subscriptions.create = jest.fn(({ customer, items, trial_period_days }) => {
-    const trialStartsAt = moment();
-    const trialEndsAt = moment(trialStartsAt).add(trial_period_days, 'days');
-    const subscription = {
-        customer,
-        status: SubscriptionStatus.Trialing,
-        id: crypto.randomBytes(8).toString('hex'),
-        current_period_start: trialStartsAt.unix(),
-        current_period_end: trialEndsAt.unix()
-    };
-
-    return Promise.resolve(subscription);
-});
+stripe.customers.create = jest.fn(({ email }) => Promise.resolve({
+    email,
+    id: crypto.randomBytes(8).toString('hex')
+}));
 
 User.create.mockImplementation(({ email, password }) => {
     const user = {
@@ -275,10 +258,7 @@ describe('login', () => {
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
         expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
-        expect(userB.subscription.endsAt)
-            .toEqual(moment(userB.subscription.startsAt).add(TRIAL_PERIOD_DAYS, 'days').toDate());
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
-        expect(stripe.subscriptions.create).toHaveBeenCalled();
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
         expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
