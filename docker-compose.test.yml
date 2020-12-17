@@ -7,17 +7,21 @@ services:
       - NODE_ENV=testing
       - MONGO_DB=${MONGO_DB}-test
 
-  cypress:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tests
-    command: npx cypress run --browser chrome
+  # cypress:
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile.cypress
+  #   command: npx cypress run --browser chrome
+  #   environment:
+  #     - CYPRESS_BASE_URL=http://app:${NODE_PORT}
+  #     - MONGO_PORT=${MONGO_PORT}
+  #     - MONGO_DB=${MONGO_DB}-test
+  #   volumes:
+  #     - ./config/cypress.json:/app/cypress.json
+  #     - ./src:/app/src
+  #   depends_on:
+  #     - app
+
+  mailer:
     environment:
-      - CYPRESS_BASE_URL=http://app:${NODE_PORT}
-      - CYPRESS_MONGO_PORT=${MONGO_PORT}
-      - CYPRESS_MONGO_DB=${MONGO_DB}-test
-    volumes:
-      - ./config/cypress.json:/app/cypress.json
-      - ./src:/app/src
-    depends_on:
-      - app
+      - MONGO_DB=${MONGO_DB}-test

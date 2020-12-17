@@ -6,6 +6,16 @@ services:
     environment:
       - NODE_ENV=development
 
+  mailer:
+    command: npx nodemon --watch src/mailer src/mailer/mailer.mjs
+
+  mailhog:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.mailhog
+    ports:
+      - 8025:8025
+
   mongo:
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}

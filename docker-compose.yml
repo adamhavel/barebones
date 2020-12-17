@@ -7,6 +7,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.app
     tty: true
+    command: npm start
     environment:
       - NODE_ENV
       - NODE_PORT
@@ -23,6 +24,23 @@ services:
     volumes:
       - ./src:/app/src
       - static-assets:/app/build/client
+    depends_on:
+      - mongo
+
+  mailer:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.mailer
+    command: node src/mailer/mailer.mjs
+    environment:
+      - MONGO_PORT
+      - MONGO_DB
+      - MAIL_HOST
+      - MAIL_PORT
+      - MAIL_USER
+      - MAIL_PASSWORD
+    volumes:
+      - ./src/mailer:/app/src/mailer
     depends_on:
       - mongo
 

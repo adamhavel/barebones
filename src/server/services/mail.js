@@ -1,20 +1,17 @@
 import nodemailer from 'nodemailer';
-
+import MailTime from 'mail-time';
 import { getEmailVerificationUrl, getPasswordResetUrl } from './urlGenerator.js';
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-        user: 'dana.kautzer@ethereal.email',
-        pass: 'ptcxPhFFtGGaK1SqhZ'
-    }
-});
+let mailQueue;
+
+export function initMailQueue(db) {
+    mailQueue = new MailTime({ db, type: 'client' });
+}
 
 export function sendRegistrationEmail(email, token) {
     const verificationUrl = getEmailVerificationUrl(token);
 
-    return transporter.sendMail({
+    mailQueue.sendMail({
         from: '"Fred Foo 👻" <foo@example.com>',
         to: email,
         subject: 'Verify your account',
@@ -26,7 +23,7 @@ export function sendRegistrationEmail(email, token) {
 export function sendPasswordResetEmail(email, token) {
     const verificationUrl = getPasswordResetUrl(token);
 
-    return transporter.sendMail({
+    mailQueue.sendMail({
         from: '"Fred Foo 👻" <foo@example.com>',
         to: email,
         subject: 'Reset password',

@@ -5,16 +5,14 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
-import db from 'mongoose';
+import mongoose from 'mongoose';
 import i18n from 'i18n';
 import url from 'url';
 
 import { authenticate } from './controllers/auth.js';
-import urlGenerator from './services/urlGenerator.js';
 import router from './routes/router.js';
 import routes from '../common/routes.js';
-import { initMetrics } from './services/metrics.js';
-
+import { initMailQueue } from './services/mail.js';
 
 // Environment
 const {
@@ -23,8 +21,7 @@ const {
     NODE_COOKIE_SECRET: cookieSecret,
     NODE_ENV: env,
     MONGO_PORT: dbPort,
-    MONGO_DB: dbName,
-    SERVERNAME: servername
+    MONGO_DB: dbName
 } = process.env;
 const app = express();
 const SessionStore = sessionStoreFactory(session);
@@ -37,7 +34,7 @@ nunjucks
     .configure('src/server/views', {
         autoescape: true,
         express: app,
-        noCache: true,
+        noCache: true
     })
     .addGlobal('routes', routes);
 
@@ -50,13 +47,13 @@ i18n.configure({
 
 (async function() {
 
-    await db.connect(`mongodb://mongo:${dbPort}/${dbName}`, {
+    const { connection } = await mongoose.connect(`mongodb://mongo:${dbPort}/${dbName}`, {
         useUnifiedTopology: true,
         useNewUrlParser: true,
         useCreateIndex: true
     });
 
-    initMetrics();
+    initMailQueue(connection.db);
 
     // Middleware
     app.use(compression());
@@ -67,7 +64,7 @@ i18n.configure({
         saveUninitialized: false,
         proxy: true,
         store: new SessionStore({
-            mongooseConnection: db.connection,
+            mongooseConnection: connection,
             stringify: false,
             touchAfter: 24 * 3600
         }),
@@ -81,7 +78,6 @@ i18n.configure({
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(i18n.init);
     app.use(authenticate);
-    app.use(urlGenerator(servername));
     app.use(router);
 
 

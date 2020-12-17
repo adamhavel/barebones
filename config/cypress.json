@@ -1,4 +1,5 @@
 {
+    "baseUrl": "http://localhost",
     "pluginsFile": false,
     "supportFile": "src/tests/support/index.js",
     "fixturesFolder": "src/tests/fixtures",

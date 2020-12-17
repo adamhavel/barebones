@@ -1,17 +1,10 @@
 import routes from '../../common/routes.js';
 
-const context = {};
-
-export default function urlGenerator(servername) {
-    return (req, res, next) => {
-        req.baseUrl = req.protocol + '://' + servername;
-        context.req = req;
-        next();
-    };
-}
+const { SERVERNAME: servername } = process.env;
+const baseUrl = 'http://' + servername;
 
 export function getEmailVerificationUrl(token) {
-    const targetUrl = new URL(context.req.baseUrl);
+    const targetUrl = new URL(baseUrl);
 
     targetUrl.pathname = routes('auth/login');
     targetUrl.searchParams.set('token', token);
@@ -20,7 +13,7 @@ export function getEmailVerificationUrl(token) {
 }
 
 export function getPasswordResetUrl(token) {
-    const targetUrl = new URL(context.req.baseUrl);
+    const targetUrl = new URL(baseUrl);
 
     targetUrl.pathname = routes('auth/forgot');
     targetUrl.searchParams.set('token', token);

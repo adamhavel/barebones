@@ -5,5 +5,5 @@ WORKDIR /app
 COPY config/cypress.json ./
 COPY src ./src
 
-RUN npm i --save-dev cypress mongoose
+RUN npm i cypress mongoose
 RUN npx cypress verify

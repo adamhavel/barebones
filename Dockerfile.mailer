@@ -1,0 +1,7 @@
+FROM node:14-alpine
+
+WORKDIR /app
+
+COPY src/mailer ./src/mailer
+
+RUN npm i mail-time nodemailer mongoose nodemon
