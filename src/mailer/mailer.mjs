@@ -12,6 +12,10 @@ const {
     MAIL_PASSWORD: pass
 } = process.env;
 
+if (user && pass) {
+
+}
+
 const transport = nodemailer.createTransport({
     host, port
 });

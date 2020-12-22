@@ -1,6 +1,6 @@
 {
     "baseUrl": "http://localhost",
-    "pluginsFile": false,
+    "pluginsFile": "src/tests/plugin/index.cjs",
     "supportFile": "src/tests/support/index.js",
     "fixturesFolder": "src/tests/fixtures",
     "integrationFolder": "src/tests/integration",

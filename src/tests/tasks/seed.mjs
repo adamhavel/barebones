@@ -1,20 +1,24 @@
-console.log(process.env);
+import mongoose from 'mongoose';
 
-// import db from 'mongoose';
+const {
+    MONGO_HOST: dbHost,
+    MONGO_PORT: dbPort,
+    MONGO_DB: dbName
+} = process.env;
 
-// const dbPort = Cypress.env('MONGO_PORT');
-// const dbName = Cypress.env('MONGO_DB');
+(async function() {
 
-// export default function(on, config) {
-//     on('task', {
-//         'db:seed': async function() {
-//             await db.connect(`mongodb://mongo:${dbPort}/${dbName}`, {
-//                 useUnifiedTopology: true,
-//                 useNewUrlParser: true,
-//                 useCreateIndex: true
-//             });
+    const { connection } = await mongoose.connect(`mongodb://${dbHost}:${dbPort}/${dbName}`, {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+        useCreateIndex: true
+    });
 
-//             return true;
-//         },
-//     });
-// };
+    try {
+        await connection.dropCollection('users');
+        await connection.dropCollection('sessions');
+    } catch(err) {}
+
+    await connection.close();
+
+})();
