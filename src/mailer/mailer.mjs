@@ -7,7 +7,7 @@ const {
     MONGO_PORT: dbPort,
     MONGO_DB: dbName,
     MAIL_HOST: host,
-    MAIL_PORT: port,
+    MAIL_SMTP_PORT: port,
     MAIL_USER: user,
     MAIL_PASSWORD: pass
 } = process.env;

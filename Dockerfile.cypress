@@ -5,5 +5,5 @@ WORKDIR /app
 COPY config/cypress.json ./
 COPY src ./src
 
-RUN npm i cypress mongoose
+RUN npm i cypress mongoose mailhog node-html-parser
 RUN npx cypress verify

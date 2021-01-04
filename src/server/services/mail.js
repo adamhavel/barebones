@@ -16,7 +16,7 @@ export function sendRegistrationEmail(email, token) {
         to: email,
         subject: 'Verify your account',
         text: `Open ${verificationUrl} to verify.`,
-        html: `Open <a href="${verificationUrl}">${verificationUrl}</a> to verify.`
+        html: `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`
     });
 }
 
@@ -28,6 +28,6 @@ export function sendPasswordResetEmail(email, token) {
         to: email,
         subject: 'Reset password',
         text: `Open ${verificationUrl} to verify.`,
-        html: `Open <a href="${verificationUrl}">${verificationUrl}</a> to verify.`
+        html: `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`
     });
 }

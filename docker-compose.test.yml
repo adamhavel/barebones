@@ -14,8 +14,11 @@ services:
   #   command: npx cypress run --browser chrome
   #   environment:
   #     - CYPRESS_BASE_URL=http://app:${NODE_PORT}
-  #     - MONGO_PORT=${MONGO_PORT}
-  #     - MONGO_DB=${MONGO_DB}-test
+  #     - CYPRESS_MONGO_PORT=${MONGO_PORT}
+  #     - CYPRESS_MONGO_DB=${MONGO_DB}-test
+  #     - CYPRESS_MONGO_HOST=mongo
+  #     - CYPRESS_NODE_SESSION_COOKIE=${NODE_SESSION_COOKIE}
+  #     - CYPRESS_MAIL_HOST=${MAIL_HOST}
   #   volumes:
   #     - ./config/cypress.json:/app/cypress.json
   #     - ./src:/app/src
