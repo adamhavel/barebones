@@ -1,5 +1,5 @@
 import db from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import { subscriptionSchema as subscription } from './subscription.js';
 

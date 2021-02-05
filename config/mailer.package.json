@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "dependencies": {
+    "mongoose": "^5.11.12",
+    "mail-time": "^1.2.5",
+    "nodemailer": "^6.4.17",
+    "nodemon":" ^2.0.7"
+  }
+}

@@ -10,7 +10,7 @@ const routes = {
     settings: 'nastaveni',
     subscription: {
         root: 'clenstvi',
-        'add-payment-method': 'zaplatit'
+        'create-subscription': 'vytvorit'
     },
     dashboard: 'prehled'
 };

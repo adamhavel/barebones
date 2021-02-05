@@ -3,7 +3,8 @@ FROM cypress/browsers:node14.15.0-chrome86-ff82
 WORKDIR /app
 
 COPY config/cypress.json ./
+COPY config/cypress.package.json ./package.json
 COPY src ./src
 
-RUN npm i cypress mongoose mailhog node-html-parser
+RUN npm i
 RUN npx cypress verify

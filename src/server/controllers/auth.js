@@ -3,16 +3,15 @@ import moment from 'moment';
 
 import routes from '../../common/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
-import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
+import stripe, { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
-import { SubscriptionStatus } from '../models/subscription.js';
+import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
 import Session from '../models/session.js';
 import { AuthError, ApplicationError } from '../models/error.js';
 
 const {
-    NODE_SESSION_COOKIE: sessionCookieName,
-    STRIPE_SUBSCRIPTION_ID: stripeSubscriptionId
+    NODE_SESSION_COOKIE: sessionCookieName
 } = process.env;
 
 export async function renderLogin(req, res) {
@@ -59,12 +58,14 @@ export async function login(req, res) {
             throw new AuthError(i18n.__('auth.login.msg.token-not-owner'));
         }
 
-        const customer = await stripe.customers.create({ email });
+        // TODO: Update tests.
+        const { data: [ existingCustomer ] } = await stripe.customers.list({ email });
+        const customer = existingCustomer || await stripe.customers.create({ email });
 
         user.isVerified = true;
         user.subscription = {
             stripeCustomerId: customer.id,
-            status: SubscriptionStatus.Trialing,
+            status: STRIPE_SUBSCRIPTION_STATUS.Trialing,
             endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
         };
 

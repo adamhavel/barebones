@@ -26,3 +26,11 @@ build:
 		-f docker-compose.prod.yml \
 		-f docker-compose.test.yml \
 		build --compress --parallel
+
+pull:
+	docker-compose \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		-f docker-compose.prod.yml \
+		-f docker-compose.test.yml \
+		pull

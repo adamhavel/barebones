@@ -1,7 +1,7 @@
 import routes from '../../common/routes.js';
 
-const { SERVERNAME: servername } = process.env;
-const baseUrl = 'http://' + servername;
+// TODO: https
+const baseUrl = 'http://' + process.env.APP_HOST;
 
 export function getEmailVerificationUrl(token) {
     const targetUrl = new URL(baseUrl);

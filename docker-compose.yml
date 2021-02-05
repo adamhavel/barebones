@@ -19,8 +19,8 @@ services:
       - STRIPE_PRIVATE_KEY
       - STRIPE_HOOK_PATH
       - STRIPE_HOOK_SECRET
-      - STRIPE_SUBSCRIPTION_ID
-      - SERVERNAME
+      - STRIPE_PRICE_ID
+      - APP_HOST
     volumes:
       - ./src:/app/src
       - static-assets:/app/build/client
@@ -31,11 +31,10 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.mailer
-    command: node src/mailer/mailer.mjs
+    command: node src/mailer/mailer.js
     environment:
       - MONGO_PORT
       - MONGO_DB
-      - MAIL_HOST
       - MAIL_SMTP_PORT
       - MAIL_USER
       - MAIL_PASSWORD
@@ -55,7 +54,6 @@ services:
     environment:
       - NGINX_ENTRYPOINT_QUIET_LOGS=1
       - NODE_PORT
-      - SERVERNAME
     volumes:
       - ./config/nginx.conf:/etc/nginx/templates/default.conf.template
       - static-assets:/app/public

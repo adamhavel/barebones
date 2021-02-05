@@ -6,24 +6,26 @@ services:
     environment:
       - NODE_ENV=testing
       - MONGO_DB=${MONGO_DB}-test
+      - APP_HOST=app:${NODE_PORT}
 
-  # cypress:
-  #   build:
-  #     context: .
-  #     dockerfile: ./Dockerfile.cypress
-  #   command: npx cypress run --browser chrome
-  #   environment:
-  #     - CYPRESS_BASE_URL=http://app:${NODE_PORT}
-  #     - CYPRESS_MONGO_PORT=${MONGO_PORT}
-  #     - CYPRESS_MONGO_DB=${MONGO_DB}-test
-  #     - CYPRESS_MONGO_HOST=mongo
-  #     - CYPRESS_NODE_SESSION_COOKIE=${NODE_SESSION_COOKIE}
-  #     - CYPRESS_MAIL_HOST=${MAIL_HOST}
-  #   volumes:
-  #     - ./config/cypress.json:/app/cypress.json
-  #     - ./src:/app/src
-  #   depends_on:
-  #     - app
+  cypress:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.cypress
+    command: npx cypress run --browser chrome
+    environment:
+      - CYPRESS_BASE_URL=http://app:${NODE_PORT}
+      - CYPRESS_MONGO_PORT=${MONGO_PORT}
+      - CYPRESS_MONGO_DB=${MONGO_DB}-test
+      - CYPRESS_MONGO_HOST=mongo
+      - CYPRESS_NODE_SESSION_COOKIE=${NODE_SESSION_COOKIE}
+      - CYPRESS_MAIL_HOST=mailhog
+      - CYPRESS_STRIPE_PRIVATE_KEY=${STRIPE_PRIVATE_KEY}
+    volumes:
+      - ./config/cypress.json:/app/cypress.json
+      - ./src:/app/src
+    depends_on:
+      - app
 
   mailer:
     environment:

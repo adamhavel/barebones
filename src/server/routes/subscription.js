@@ -24,18 +24,18 @@ subscription
         bodyParser.raw({ type: 'application/json' }),
         ctrl.handleStripeEvents,
         (err, req, res, next) => {
-            res.sendStatus(404);
+            res.status(400).send(err.message);
         }
     );
 
 subscription
-    .route(routes('subscription/add-payment-method'))
+    .route(routes('subscription/create-subscription'))
     .post(
         stopUnauthenticated,
         bodyParser.json(),
-        ctrl.addPaymentMethod,
+        ctrl.createSubscription,
         (err, req, res, next) => {
-            res.status('402').send({ error: { message: err.message } });
+            res.status(402).send({ error: { message: err.message } });
         }
     );
 

@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "mongoose": "^5.11.12",
+    "stripe": "^8.131.1",
+    "cypress": "^6.4.0",
+    "mailhog": "^4.15.0",
+    "node-html-parser": "^2.0.2"
+  }
+}

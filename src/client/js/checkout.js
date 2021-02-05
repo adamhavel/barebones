@@ -1,11 +1,9 @@
 import routes from './routes.js';
 
-const stripePublicKey = document.querySelector('meta[name="stripe-public-key"]').getAttribute('content');
-const stripe = Stripe(stripePublicKey, {
-    locale: document.documentElement.getAttribute('lang')
-});
-const elements = stripe.elements();
-const style = {
+const locale = document.documentElement.getAttribute('lang');
+const stripePublicKey = document.querySelector('meta[name="stripe-public-key"]')?.getAttribute('content');
+const stripe = Stripe(stripePublicKey, { locale });
+const card = stripe.elements().create('card', {
     base: {
         color: '#32325d',
         fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
@@ -19,38 +17,42 @@ const style = {
         color: '#fa755a',
         iconColor: '#fa755a'
     }
-};
-const cardEl = elements.create('card', { style });
+});
+
 const errorEl = document.querySelector('#stripe-errors');
 const formEl = document.querySelector('#stripe-checkout');
 const nameEl = document.querySelector('#stripe-billing-name');
+
 const displayError = error => errorEl.textContent = error?.message || '';
-const createRequest = body => ({
+const createReq = body => ({
     method: 'post',
     headers: { 'Content-type': 'application/json' },
     body: JSON.stringify(body)
 });
 
-cardEl.mount('#stripe-card');
-cardEl.on('change', ev => displayError(ev.error));
+card.mount('#stripe-card');
+card.on('change', ({ error }) => displayError(error));
 
 formEl.addEventListener('submit', async ev => {
     ev.preventDefault();
-    displayError();
+
+    errorEl.textContent = '';
+    formEl.classList.add('is-fetching');
 
     try {
-        const paymentMethod = await stripe.createPaymentMethod({
+        const paymentMethodAttempt = await stripe.createPaymentMethod({
             type: 'card',
-            card: cardEl,
+            card,
             billing_details: { name: nameEl.value }
         });
 
-        if (paymentMethod.error) throw paymentMethod.error;
+        if (paymentMethodAttempt.error) throw paymentMethodAttempt.error;
 
-        const stripePaymentMethodId = paymentMethod.paymentMethod.id;
-        const req = createRequest({ stripePaymentMethodId });
-        const subscription = await fetch(routes('subscription/add-payment-method'), req)
-            .then(res => res.json());
+        const { paymentMethod } = paymentMethodAttempt;
+        const subscription = await fetch(
+            routes('subscription/create-subscription'),
+            createReq(paymentMethod)
+        ).then(res => res.json());
 
         if (subscription.error) throw subscription.error;
 
@@ -59,18 +61,17 @@ formEl.addEventListener('submit', async ev => {
         if (paymentIntent.status === 'requires_action') {
             const confirmedPaymentIntent = await stripe.confirmCardPayment(
                 paymentIntent.client_secret,
-                { payment_method: stripePaymentMethodId }
+                { payment_method: paymentMethod.id }
             );
 
             if (confirmedPaymentIntent.error) throw confirmedPaymentIntent.error;
         }
 
-        if (subscription.status === 'active') {
-            console.log('yay', subscription);
-            return;
-        }
+        window.location.reload();
 
     } catch (err) {
         displayError(err);
     }
+
+    formEl.classList.remove('is-fetching');
 });

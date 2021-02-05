@@ -9,7 +9,6 @@ const TokenPurpose = Object.freeze({
     AccountCancellation: 'account-cancellation'
 });
 
-// TODO: Add enum.
 const tokenSchema = new db.Schema({
     userId: { type: db.Schema.Types.ObjectId, required: true, ref: 'User' },
     token: { type: String, required: true, default() { return crypto.randomBytes(16).toString('hex') } },

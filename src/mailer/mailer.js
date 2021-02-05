@@ -6,7 +6,6 @@ const {
     NODE_ENV: env,
     MONGO_PORT: dbPort,
     MONGO_DB: dbName,
-    MAIL_HOST: host,
     MAIL_SMTP_PORT: port,
     MAIL_USER: user,
     MAIL_PASSWORD: pass
@@ -17,7 +16,7 @@ if (user && pass) {
 }
 
 const transport = nodemailer.createTransport({
-    host, port
+    host: 'mailhog', port
 });
 
 (async function() {

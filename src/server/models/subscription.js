@@ -1,22 +1,15 @@
 import db from 'mongoose';
+import { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
 
-const SubscriptionStatus = Object.freeze({
-    Active: 'active',
-    PastDue: 'past_due',
-    Unpaid: 'unpaid',
-    Canceled: 'canceled',
-    Incomplete: 'incomplete',
-    IncompleteExpired: 'incomplete_expired',
-    Trialing: 'trialing'
-});
+const TRIAL_PERIOD_DAYS = 14;
 
 const subscriptionSchema = new db.Schema({
-    stripeId: { type: String },
+    stripeSubscriptionId: { type: String },
     stripeCustomerId: { type: String },
     stripePaymentMethodId: { type: String },
-    status: { type: String, enum: Object.values(SubscriptionStatus) },
+    status: { type: String, enum: Object.values(STRIPE_SUBSCRIPTION_STATUS) },
     endsAt: { type: Date },
     lastFourDigits: { type: String }
 });
 
-export { subscriptionSchema, SubscriptionStatus };
+export { subscriptionSchema, TRIAL_PERIOD_DAYS };

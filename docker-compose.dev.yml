@@ -7,12 +7,14 @@ services:
       - NODE_ENV=development
 
   mailer:
-    command: npx nodemon --watch src/mailer src/mailer/mailer.mjs
+    command: npx nodemon --watch src/mailer src/mailer/mailer.js
 
   mailhog:
     build:
       context: .
       dockerfile: ./Dockerfile.mailhog
+    logging:
+      driver: 'none'
     ports:
       - 8025:8025
 

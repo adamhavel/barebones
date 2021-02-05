@@ -6,7 +6,7 @@ import * as metrics from '../services/metrics.js';
 
 const {
     NODE_ENV: env,
-    SERVERNAME: servername
+    APP_HOST: appHost
 } = process.env;
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.all('/ping', (req, res) => {
 
 router.all('/metrics', async (req, res, next) => {
     // Allow entry only for requests from internal network.
-    if (env === 'production' && req.hostname === servername) return next();
+    if (env === 'production' && req.host === appHost) return next();
 
     res.set('Content-Type', prometheus.contentType);
     res.send(await prometheus.register.metrics());

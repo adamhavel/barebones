@@ -6,9 +6,9 @@ import moment from 'moment';
 import routes from '../../common/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
-import stripe, { TRIAL_PERIOD_DAYS } from '../services/payment.js';
 import User from '../models/user.js';
-import { SubscriptionStatus } from '../models/subscription.js';
+import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
+import stripe, { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
@@ -23,6 +23,10 @@ const { ObjectId } = db.Types;
 const res = mockRes();
 const email = 'jane.doe@example.com';
 const password = '12345';
+
+stripe.customers.list = jest.fn(({ email }) => Promise.resolve({
+    data: []
+}));
 
 stripe.customers.create = jest.fn(({ email }) => Promise.resolve({
     email,
@@ -257,7 +261,7 @@ describe('login', () => {
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
-        expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
+        expect(userB.subscription.status).toBe(STRIPE_SUBSCRIPTION_STATUS.Trialing);
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
