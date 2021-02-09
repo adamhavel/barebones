@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ __('auth.register.heading') }}</h1>
-<form action="{{ routes('auth/register') }}" method="post">
+<form type="auth" action="{{ routes('auth/register') }}" method="post">
     <div>
         <label for="email">{{ __('common.form.email') }}</label>
         <input type="email" name="email" id="email" value="{{ body.email }}" />
@@ -13,6 +13,6 @@
         <input type="password" name="password" id="password" />
         {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
     </div>
-    <button>{{ __('auth.register.form.submit') }}</button>
+    <button type="submit">{{ __('auth.register.form.submit') }}</button>
 </form>
 {% endblock %}

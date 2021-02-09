@@ -40,31 +40,31 @@ formEl.addEventListener('submit', async ev => {
     formEl.classList.add('is-fetching');
 
     try {
-        const paymentMethodAttempt = await stripe.createPaymentMethod({
+        // Attach payment method.
+        const { paymentMethod, error: paymentError } = await stripe.createPaymentMethod({
             type: 'card',
             card,
             billing_details: { name: nameEl.value }
         });
 
-        if (paymentMethodAttempt.error) throw paymentMethodAttempt.error;
+        if (paymentError) throw paymentError;
 
-        const { paymentMethod } = paymentMethodAttempt;
-        const subscription = await fetch(
+        // Pay for subscription.
+        const { paymentIntent, error: subscriptionError } = await fetch(
             routes('subscription/create-subscription'),
             createReq(paymentMethod)
         ).then(res => res.json());
 
-        if (subscription.error) throw subscription.error;
+        if (subscriptionError) throw subscriptionError;
 
-        const paymentIntent = subscription.latest_invoice.payment_intent;
-
+        // Handle 3D Secure.
         if (paymentIntent.status === 'requires_action') {
-            const confirmedPaymentIntent = await stripe.confirmCardPayment(
+            const { error: paymentConfirmationError } = await stripe.confirmCardPayment(
                 paymentIntent.client_secret,
                 { payment_method: paymentMethod.id }
             );
 
-            if (confirmedPaymentIntent.error) throw confirmedPaymentIntent.error;
+            if (paymentConfirmationError) throw paymentConfirmationError;
         }
 
         window.location.reload();

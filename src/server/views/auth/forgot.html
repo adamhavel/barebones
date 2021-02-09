@@ -1,14 +1,8 @@
 {% extends "../document.html" %}
 
-{% macro queryString(query) -%}
-    {% for name, value in query -%}
-        {{ '?' if loop.first else '&' }}{{ name | urlencode }}={{ value | urlencode }}
-    {%- endfor %}
-{%- endmacro %}
-
 {% block content %}
 <h1>{{ __('auth.forgot.heading') }}</h1>
-<form action="{{ routes('auth/forgot') }}{{ queryString(query) if (query and isVerified) }}" method="post">
+<form type="auth" action="{{ routes('auth/forget') }}{{ querystring }}" method="post">
     {% if isVerified %}
         <div>
             <label for="password">{{ __('common.form.password') }}</label>
@@ -22,7 +16,7 @@
             <input type="email" name="email" id="email" value="{{ body.email }}" />
             {% if errors.email %}<p>{{ errors.email.msg }}</p>{% endif %}
         </div>
-        <button>{{ __('auth.forgot.form.submit') }}</button>
+        <button type="submit">{{ __('auth.forgot.form.submit') }}</button>
     {% endif %}
 </form>
 {% endblock %}

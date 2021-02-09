@@ -28,6 +28,7 @@ export default async (on, config) => {
 
             url.hostname = baseUrl.hostname;
             url.port = baseUrl.port;
+
             await mailhogClient.deleteMessage(ID);
 
             return url.href;

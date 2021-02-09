@@ -2,13 +2,14 @@ import crypto from 'crypto';
 import i18n from 'i18n';
 import db from 'mongoose';
 import moment from 'moment';
+import Url from 'url';
 
 import routes from '../../common/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
 import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
-import stripe, { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
+import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
@@ -121,7 +122,7 @@ describe('login', () => {
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             msg: i18n.__('auth.login.msg.token-invalid-prompt'),
             body: {},
-            query
+            querystring: Url.format({ query })
         });
     });
 
@@ -138,7 +139,7 @@ describe('login', () => {
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             msg: i18n.__('auth.login.msg.token-valid-prompt'),
             body: {},
-            query
+            querystring: Url.format({ query })
         });
     });
 
@@ -261,7 +262,7 @@ describe('login', () => {
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
-        expect(userB.subscription.status).toBe(STRIPE_SUBSCRIPTION_STATUS.Trialing);
+        expect(userB.subscription.status).toBe(StripeSubscriptionStatus.Trialing);
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
@@ -318,7 +319,7 @@ describe('forgot password', () => {
             msg: i18n.__('auth.forgot.msg.token-invalid-prompt'),
             isVerified: false,
             body: {},
-            query
+            querystring: Url.format({ query })
         });
     });
 
@@ -336,7 +337,7 @@ describe('forgot password', () => {
             msg: i18n.__('auth.forgot.msg.token-valid-prompt'),
             isVerified: true,
             body: {},
-            query
+            querystring: Url.format({ query })
         });
     });
 
@@ -475,13 +476,21 @@ describe('authentication', () => {
 
     test('should return 401 and render login form with callback URL if user is not authenticated', () => {
         const url = '/foo';
+        const query = {
+            bar: 'baz'
+        };
         const next = jest.fn();
 
-        ctrl.stopUnauthenticated(mockReq({ url }), res, next);
+        ctrl.stopUnauthenticated(mockReq({ url, query }), res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
-            query: { callbackUrl: url }
+            querystring: Url.format({
+                query: {
+                    ...query,
+                    callbackUrl: url
+                }
+            })
         });
         expect(next).not.toHaveBeenCalled();
     });

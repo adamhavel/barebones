@@ -1,5 +1,5 @@
 import db from 'mongoose';
-import { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
+import { StripeSubscriptionStatus } from '../services/stripe.js';
 
 const TRIAL_PERIOD_DAYS = 14;
 
@@ -7,7 +7,7 @@ const subscriptionSchema = new db.Schema({
     stripeSubscriptionId: { type: String },
     stripeCustomerId: { type: String },
     stripePaymentMethodId: { type: String },
-    status: { type: String, enum: Object.values(STRIPE_SUBSCRIPTION_STATUS) },
+    status: { type: String, enum: Object.values(StripeSubscriptionStatus) },
     endsAt: { type: Date },
     lastFourDigits: { type: String }
 });

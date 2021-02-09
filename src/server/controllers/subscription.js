@@ -1,8 +1,8 @@
 import routes from '../../common/routes.js';
 import stripe, {
     STRIPE_SIGNATURE_HEADER,
-    STRIPE_SUBSCRIPTION_STATUS,
-    STRIPE_EVENT
+    StripeSubscriptionStatus,
+    StripeEvent
 } from '../services/stripe.js';
 import moment from 'moment';
 import User from '../models/user.js';
@@ -14,7 +14,7 @@ const {
 
 export function stopUnsubscribed(req, res, next) {
     const { status, endsAt } = req?.user.subscription;
-    const { Active, Trialing } = STRIPE_SUBSCRIPTION_STATUS;
+    const { Active, Trialing } = StripeSubscriptionStatus;
     const isSubscribed = status === Active;
     const isTrialing = (status === Trialing) && (moment().toDate() < endsAt);
 
@@ -31,15 +31,15 @@ export async function handleStripeEvents(req, res) {
         req.headers[STRIPE_SIGNATURE_HEADER],
         stripeHookSecret
     );
-    const data = event.data.object;
+    const payload = event.data.object;
 
     switch (event.type) {
-        case STRIPE_EVENT.SubscriptionUpdated: {
+        case StripeEvent.SubscriptionUpdated: {
             await User.updateOne(
-                { 'subscription.stripeCustomerId': data.customer },
+                { 'subscription.stripeCustomerId': payload.customer },
                 {
-                    'subscription.status': data.status,
-                    'subscription.endsAt': moment.unix(data.current_period_end).toDate()
+                    'subscription.status': payload.status,
+                    'subscription.endsAt': moment.unix(payload.current_period_end).toDate()
                 }
             );
         }
@@ -52,11 +52,6 @@ export async function createSubscription(req, res) {
     const paymentMethod = req.body;
     const { user } = req;
     const { stripeCustomerId } = user.subscription;
-    const invoiceSettings = {
-        invoice_settings: {
-            default_payment_method: paymentMethod.id
-        }
-    };
 
     await stripe.paymentMethods.attach(
         paymentMethod.id,
@@ -88,5 +83,9 @@ export async function createSubscription(req, res) {
     };
 
     req.user = await user.save();
-    res.send(subscription);
+
+    res.send({
+        error: subscription.error,
+        paymentIntent: subscription.latest_invoice.payment_intent
+    });
 }

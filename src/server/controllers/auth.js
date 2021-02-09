@@ -1,9 +1,10 @@
 import i18n from 'i18n';
 import moment from 'moment';
+import Url from 'url';
 
 import routes from '../../common/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
-import stripe, { STRIPE_SUBSCRIPTION_STATUS } from '../services/stripe.js';
+import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
@@ -21,7 +22,7 @@ export async function renderLogin(req, res) {
 
     res.render('auth/login', {
         msg: token && (validToken ? i18n.__('auth.login.msg.token-valid-prompt') : i18n.__('auth.login.msg.token-invalid-prompt')),
-        query,
+        querystring: Url.format({ query }),
         body
     });
 }
@@ -65,7 +66,7 @@ export async function login(req, res) {
         user.isVerified = true;
         user.subscription = {
             stripeCustomerId: customer.id,
-            status: STRIPE_SUBSCRIPTION_STATUS.Trialing,
+            status: StripeSubscriptionStatus.Trialing,
             endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
         };
 
@@ -91,7 +92,7 @@ export async function renderForgotPassword(req, res) {
     res.render('auth/forgot', {
         msg: token && (validToken ? i18n.__('auth.forgot.msg.token-valid-prompt') : i18n.__('auth.forgot.msg.token-invalid-prompt')),
         isVerified: !!validToken,
-        query,
+        querystring: Url.format({ query }),
         body
     });
 }
@@ -193,7 +194,12 @@ export async function authenticate(req, res, next) {
 export function stopUnauthenticated(req, res, next) {
     if (!req.user) {
         res.status(401).render('auth/login', {
-            query: { callbackUrl: req.url }
+            querystring: Url.format({
+                query: {
+                    ...req.query,
+                    callbackUrl: req.url
+                }
+            })
         });
     } else {
         next();

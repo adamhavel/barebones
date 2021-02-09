@@ -10,13 +10,11 @@ Cypress.Commands.add('login', (email, password) => {
 });
 
 Cypress.Commands.add('submitCredentials', (email, password) => {
-    cy.get('input[name="email"]')
-        .clear()
-        .type(email);
-
-    cy.get('input[name="password"]')
-        .clear()
-        .type(`${password}{enter}`);
+    cy.get('form[type="auth"]').within(() => {
+        cy.get('input[name="email"]').clear().type(email);
+        cy.get('input[name="password"]').clear().type(`${password}{enter}`);
+        cy.get('button[type="submit"]').click();
+    })
 });
 
 Cypress.Commands.add('isSessionCookie', cookie => {

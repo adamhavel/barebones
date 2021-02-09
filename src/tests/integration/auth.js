@@ -34,4 +34,8 @@ describe('Authentication', () => {
         cy.getCookies().should('have.length', 0);
     });
 
+    it('Reset forgotten password', function() {
+        cy.visit(route('auth/forgot'));
+    });
+
 });
