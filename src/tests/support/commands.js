@@ -11,8 +11,8 @@ Cypress.Commands.add('login', (email, password) => {
 
 Cypress.Commands.add('submitCredentials', (email, password) => {
     cy.get('form[type="auth"]').within(() => {
-        cy.get('input[name="email"]').clear().type(email);
-        cy.get('input[name="password"]').clear().type(`${password}{enter}`);
+        if (email) cy.get('input[name="email"]').clear().type(email);
+        if (password) cy.get('input[name="password"]').clear().type(password);
         cy.get('button[type="submit"]').click();
     })
 });

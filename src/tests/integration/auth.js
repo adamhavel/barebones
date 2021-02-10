@@ -6,11 +6,10 @@ describe('Authentication', () => {
         const { email, password } = this.user;
 
         cy.visit(route('auth/register'));
-
         cy.submitCredentials(email, password);
+
         cy.wait(3000);
-        cy.task('getUrlFromLastMail', email)
-            .then(verificationUrl => cy.visit(verificationUrl));
+        cy.task('getUrlFromLastMail', email).then(cy.visit);
 
         cy.submitCredentials(email, password);
         cy.getCookies()
@@ -35,7 +34,14 @@ describe('Authentication', () => {
     });
 
     it('Reset forgotten password', function() {
+        const { email, password } = this.user;
+
         cy.visit(route('auth/forgot'));
+        cy.submitCredentials(email);
+
+        cy.wait(3000);
+        cy.task('getUrlFromLastMail', email).then(cy.visit);
+
     });
 
 });

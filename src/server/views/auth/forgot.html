@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ __('auth.forgot.heading') }}</h1>
-<form type="auth" action="{{ routes('auth/forget') }}{{ querystring }}" method="post">
+<form type="auth" action="{{ routes('auth/forgot') }}{{ querystring }}" method="post">
     {% if isVerified %}
         <div>
             <label for="password">{{ __('common.form.password') }}</label>
