@@ -9,7 +9,7 @@
             <input type="password" name="password" id="password" />
             {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
         </div>
-        <button>{{ __('auth.forgot.form.submit') }}</button>
+        <button type="submit">{{ __('auth.forgot.form.submit') }}</button>
     {% else %}
         <div>
             <label for="email">{{ __('common.form.email') }}</label>

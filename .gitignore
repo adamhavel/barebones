@@ -2,3 +2,4 @@ node_modules
 data
 src/tests/videos
 .env
+.DS_Store

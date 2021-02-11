@@ -17,6 +17,6 @@ Cypress.Commands.add('submitCredentials', (email, password) => {
     })
 });
 
-Cypress.Commands.add('isSessionCookie', cookie => {
-    return expect(cookie).to.have.property('name', Cypress.env('NODE_SESSION_COOKIE'))
+Cypress.Commands.add('getSessionCookie', () => {
+    return cy.getCookie(Cypress.env('NODE_SESSION_COOKIE'));
 });

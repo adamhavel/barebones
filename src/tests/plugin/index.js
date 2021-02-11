@@ -14,14 +14,26 @@ export default async (on, config) => {
         STRIPE_PRIVATE_KEY: stripePrivateKey
     } = config.env;
     const baseUrl = new URL(config.baseUrl);
+    const stripe = stripeFactory(stripePrivateKey);
 
     on('task', {
         async getUrlFromLastMail(email) {
             const mailhogClient = mailhog({ host: mailHost });
-            const { html, ID } = await mailhogClient.latestTo(email);
+            const pollLatestMail = async resolve => {
+                const { html, ID: mailId } = await mailhogClient.latestTo(email);
+
+                if (mailId) {
+                    await mailhogClient.deleteMessage(mailId);
+                    resolve(html);
+                } else {
+                    setTimeout(pollLatestMail, 100, resolve);
+                }
+            };
+
+            const latestEmail = await new Promise(pollLatestMail);
             const url = new URL(
                 htmlParser
-                    .parse(html)
+                    .parse(latestEmail)
                     .querySelector('.t-cta')
                     .getAttribute('href')
             );
@@ -29,12 +41,9 @@ export default async (on, config) => {
             url.hostname = baseUrl.hostname;
             url.port = baseUrl.port;
 
-            await mailhogClient.deleteMessage(ID);
-
             return url.href;
         },
         async resetDb() {
-            const stripe = stripeFactory(stripePrivateKey);
             const { connection: db } = await mongoose.connect(`mongodb://${dbHost}:${dbPort}/${dbName}`, {
                 useUnifiedTopology: true,
                 useNewUrlParser: true,
