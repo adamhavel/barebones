@@ -101,7 +101,10 @@ describe('register', () => {
         expect(registrationToken).toBeDefined();
         expect(sendRegistrationEmail).toHaveBeenCalledWith(email, registrationToken.token);
         expect(res.render).toHaveBeenCalledWith('auth/register', {
-            msg: i18n.__('auth.register.msg.email-sent', { email })
+            msg: {
+                text: i18n.__('auth.register.msg.email-sent', { email }),
+                type: 'info'
+            }
         });
     });
 
@@ -109,38 +112,46 @@ describe('register', () => {
 
 describe('login', () => {
 
-    test('should render login form with prompt to enter e-mail and password if token is invalid', async () => {
+    test('should render message with prompt to enter credentials if token is invalid', async () => {
         const user = await User.create({ email, password });
         const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
         const query = {
             token: 'foo'
         };
         const req = mockReq({ query });
+        const next = jest.fn();
 
-        await ctrl.renderLogin(req, res);
+        await ctrl.validateToken(TokenPurpose.EmailVerification)(req, res, next);
 
-        expect(res.render).toHaveBeenCalledWith('auth/login', {
-            msg: i18n.__('auth.login.msg.token-invalid-prompt'),
-            body: {},
-            querystring: Url.format({ query })
+        expect(res.locals).toStrictEqual({
+            isTokenValid: false,
+            msg: {
+                text: i18n.__('auth.login.msg.token-invalid-prompt'),
+                type: 'info'
+            }
         });
+        expect(next).toHaveBeenCalled();
     });
 
-    test('should render login form with prompt to login if token is valid', async () => {
+    test('should render message with prompt to login if token is valid', async () => {
         const user = await User.create({ email, password });
         const verificationToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
         const query = {
             token: verificationToken.token
         };
         const req = mockReq({ query });
+        const next = jest.fn();
 
-        await ctrl.renderLogin(req, res);
+        await ctrl.validateToken(TokenPurpose.EmailVerification)(req, res, next);
 
-        expect(res.render).toHaveBeenCalledWith('auth/login', {
-            msg: i18n.__('auth.login.msg.token-valid-prompt'),
-            body: {},
-            querystring: Url.format({ query })
+        expect(res.locals).toStrictEqual({
+            isTokenValid: true,
+            msg: {
+                text: i18n.__('auth.login.msg.token-valid-prompt'),
+                type: 'info'
+            }
         });
+        expect(next).toHaveBeenCalled();
     });
 
     test('should throw error if no user found', async () => {
@@ -312,15 +323,18 @@ describe('forgot password', () => {
             token: 'foo'
         };
         const req = mockReq({ query });
+        const next = jest.fn();
 
-        await ctrl.renderForgotPassword(req, res);
+        await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
-            msg: i18n.__('auth.forgot.msg.token-invalid-prompt'),
-            isVerified: false,
-            body: {},
-            querystring: Url.format({ query })
+        expect(res.locals).toStrictEqual({
+            isTokenValid: false,
+            msg: {
+                text: i18n.__('auth.forgot.msg.token-invalid-prompt'),
+                type: 'info'
+            }
         });
+        expect(next).toHaveBeenCalled();
     });
 
     test('should render forgot password form with prompt to set new password if token is valid', async () => {
@@ -330,15 +344,18 @@ describe('forgot password', () => {
             token: resetToken.token
         };
         const req = mockReq({ query });
+        const next = jest.fn();
 
-        await ctrl.renderForgotPassword(req, res);
+        await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
-            msg: i18n.__('auth.forgot.msg.token-valid-prompt'),
-            isVerified: true,
-            body: {},
-            querystring: Url.format({ query })
+        expect(res.locals).toStrictEqual({
+            isTokenValid: true,
+            msg: {
+                text: i18n.__('auth.forgot.msg.token-valid-prompt'),
+                type: 'info'
+            }
         });
+        expect(next).toHaveBeenCalled();
     });
 
     test('should render forgot password form with success message even though e-mail is not used', async () => {
@@ -349,7 +366,10 @@ describe('forgot password', () => {
         await ctrl.resetPassword(req, res);
 
         expect(res.render).toHaveBeenCalledWith('auth/forgot', {
-            msg: i18n.__('auth.forgot.msg.email-sent', { email })
+            msg: {
+                text: i18n.__('auth.forgot.msg.email-sent', { email }),
+                type: 'info'
+            }
         });
     });
 
@@ -366,7 +386,10 @@ describe('forgot password', () => {
         expect(resetToken).toBeDefined();
         expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, resetToken.token);
         expect(res.render).toHaveBeenCalledWith('auth/forgot', {
-            msg: i18n.__('auth.forgot.msg.email-sent', { email })
+            msg: {
+                text: i18n.__('auth.forgot.msg.email-sent', { email }),
+                type: 'info'
+            }
         });
     });
 
@@ -412,7 +435,10 @@ describe('forgot password', () => {
         expect(userB.password).toBe(newPassword);
         expect(Session.cleanSessions).toHaveBeenCalledWith(userB._id);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
-            msg: i18n.__('auth.forgot.msg.success')
+            msg: {
+                text: i18n.__('auth.forgot.msg.success'),
+                type: 'info'
+            }
         });
     });
 

@@ -6,15 +6,16 @@ import User from '../models/user.js';
 
 const PASSWORD_MIN_LENGTH = 5;
 
-export function renderFormErrors(callback) {
+export function renderFormErrors(view) {
     return (req, res, next) => {
         const errors = validationResult(req);
 
         if (errors.isEmpty()) {
             next();
         } else {
-            res.status(422).locals.errors = errors.mapped();
-            callback(req, res, next);
+            res.status(422).render(view, {
+                errors: errors.mapped()
+            });
         }
     };
 };

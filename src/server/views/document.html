@@ -24,7 +24,7 @@
     </header>
     <main>
         <p><code>{{ user | dump(1) }}</code></p>
-        <p>{{ msg }}</p>
+        <p>{{ msg | dump(1) }}</p>
         {% block content %}{% endblock %}
     </main>
 </body>

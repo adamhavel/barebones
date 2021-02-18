@@ -13,6 +13,11 @@ export default async (on, config) => {
         MAIL_HOST: mailHost,
         STRIPE_PRIVATE_KEY: stripePrivateKey
     } = config.env;
+    const { connection: db } = await mongoose.connect(`mongodb://${dbHost}:${dbPort}/${dbName}`, {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+        useCreateIndex: true
+    });
     const baseUrl = new URL(config.baseUrl);
     const stripe = stripeFactory(stripePrivateKey);
 
@@ -44,12 +49,6 @@ export default async (on, config) => {
             return url.href;
         },
         async resetDb() {
-            const { connection: db } = await mongoose.connect(`mongodb://${dbHost}:${dbPort}/${dbName}`, {
-                useUnifiedTopology: true,
-                useNewUrlParser: true,
-                useCreateIndex: true
-            });
-
             try {
                 const users = await User.find();
 
@@ -68,8 +67,6 @@ export default async (on, config) => {
             } catch(err) {
                 console.log(err);
             }
-
-            await db.close();
 
             return null;
         }

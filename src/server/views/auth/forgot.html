@@ -3,17 +3,17 @@
 {% block content %}
 <h1>{{ __('auth.forgot.heading') }}</h1>
 <form type="auth" action="{{ routes('auth/forgot') }}{{ querystring }}" method="post">
-    {% if isVerified %}
+    {% if isTokenValid %}
         <div>
             <label for="password">{{ __('common.form.password') }}</label>
-            <input type="password" name="password" id="password" />
+            <input type="password" name="password" id="password" required />
             {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
         </div>
         <button type="submit">{{ __('auth.forgot.form.submit') }}</button>
     {% else %}
         <div>
             <label for="email">{{ __('common.form.email') }}</label>
-            <input type="email" name="email" id="email" value="{{ body.email }}" />
+            <input type="email" name="email" id="email" value="{{ body.email }}" required />
             {% if errors.email %}<p>{{ errors.email.msg }}</p>{% endif %}
         </div>
         <button type="submit">{{ __('auth.forgot.form.submit') }}</button>

@@ -15,16 +15,34 @@ const {
     NODE_SESSION_COOKIE: sessionCookieName
 } = process.env;
 
-export async function renderLogin(req, res) {
-    const { query, body } = req;
-    const { token } = query;
-    const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
+export function validateToken(purpose) {
+    return async function(req, res, next) {
+        const { token } = req.query;
+        let namespace;
 
-    res.render('auth/login', {
-        msg: token && (validToken ? i18n.__('auth.login.msg.token-valid-prompt') : i18n.__('auth.login.msg.token-invalid-prompt')),
-        querystring: Url.format({ query }),
-        body
-    });
+        switch (purpose) {
+            case TokenPurpose.EmailVerification: {
+                namespace = 'login';
+                break;
+            }
+            case TokenPurpose.PasswordReset: {
+                namespace = 'forgot';
+                break;
+            }
+        }
+
+        if (token) {
+            const validToken = await Token.findOne({ token, purpose });
+
+            res.locals.isTokenValid = !!validToken;
+            res.locals.msg = {
+                text: i18n.__(`auth.${namespace}.msg.token-${validToken ? 'valid' : 'invalid'}-prompt`),
+                type: 'info'
+            };
+        }
+
+        next();
+    }
 }
 
 export async function login(req, res) {
@@ -49,8 +67,8 @@ export async function login(req, res) {
         // Provided token invalid or expired.
         if (!validToken) {
             const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
-            // TODO: Don't wait for confirmation.
-            const emailSentConfirmation = await sendRegistrationEmail(email, newToken);
+
+            sendRegistrationEmail(email, newToken);
 
             throw new AuthError(i18n.__('auth.login.msg.token-invalid'));
         }
@@ -84,19 +102,6 @@ export async function login(req, res) {
     res.redirect(routes('dashboard'));
 }
 
-export async function renderForgotPassword(req, res) {
-    const { query, body } = req;
-    const { token } = query;
-    const validToken = token && await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
-
-    res.render('auth/forgot', {
-        msg: token && (validToken ? i18n.__('auth.forgot.msg.token-valid-prompt') : i18n.__('auth.forgot.msg.token-invalid-prompt')),
-        isVerified: !!validToken,
-        querystring: Url.format({ query }),
-        body
-    });
-}
-
 export async function resetPassword(req, res) {
     const { token } = req.query;
 
@@ -106,12 +111,15 @@ export async function resetPassword(req, res) {
 
         if (user) {
             const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
-            // TODO: Don't wait.
-            const emailSentConfirmation = await sendPasswordResetEmail(email, newToken);
+
+            sendPasswordResetEmail(email, newToken);
         }
 
         res.render('auth/forgot', {
-            msg: i18n.__('auth.forgot.msg.email-sent', { email })
+            msg: {
+                text: i18n.__('auth.forgot.msg.email-sent', { email }),
+                type: 'info'
+            }
         });
     } else {
         const { password } = req.body;
@@ -131,7 +139,10 @@ export async function resetPassword(req, res) {
         await Session.cleanSessions(user._id);
 
         res.render('auth/login', {
-            msg: i18n.__('auth.forgot.msg.success')
+            msg: {
+                text: i18n.__('auth.forgot.msg.success'),
+                type: 'info'
+            }
         });
     }
 }
@@ -145,11 +156,14 @@ export async function register(req, res) {
     const { email, password } = req.body;
     const newUser = await User.create({ email, password });
     const { token } = await Token.create({ userId: newUser._id, purpose: TokenPurpose.EmailVerification });
-    // TODO: Don't wait for confirmation.
-    const emailSentConfirmation = await sendRegistrationEmail(email, token);
+
+    sendRegistrationEmail(email, token);
 
     res.render('auth/register', {
-        msg: i18n.__('auth.register.msg.email-sent', { email })
+        msg: {
+            text: i18n.__('auth.register.msg.email-sent', { email }),
+            type: 'info'
+        }
     });
 }
 

@@ -7,7 +7,7 @@ import compression from 'compression';
 import nunjucks from 'nunjucks';
 import mongoose from 'mongoose';
 import i18n from 'i18n';
-import url from 'url';
+import Url from 'url';
 
 import { authenticate } from './controllers/auth.js';
 import router from './routes/router.js';
@@ -78,6 +78,18 @@ i18n.configure({
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(i18n.init);
     app.use(authenticate);
+    app.use((req, res, next) => {
+        const { query, body } = req;
+
+        res.locals = {
+            ...res.locals,
+            query,
+            querystring: Url.format({ query }),
+            body
+        }
+
+        next();
+    });
     app.use(router);
 
 
