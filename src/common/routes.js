@@ -7,7 +7,12 @@ const routes = {
         register: 'vytvorit',
         forgot: 'zapomenute-heslo'
     },
-    settings: 'nastaveni',
+    settings: {
+        root: 'nastaveni',
+        'update-password': 'zmenit-heslo',
+        'update-email': 'zmenit-email',
+        'delete-account': 'smazat-ucet'
+    },
     subscription: {
         root: 'clenstvi',
         'create-subscription': 'vytvorit'

@@ -11,7 +11,7 @@ const sessionSchema = new db.Schema({
     }
 });
 
-sessionSchema.statics.cleanSessions = function(userId, currentSessionId) {
+sessionSchema.statics.revokeSessions = function(userId, currentSessionId) {
     return this.deleteMany({ 'session.userId': userId, _id: { $ne: currentSessionId } });
 };
 

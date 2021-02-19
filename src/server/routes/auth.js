@@ -35,7 +35,7 @@ auth
         validate.email(),
         validate.uniqueEmail(),
         validate.password(),
-        validate.renderFormErrors(render('auth/register')),
+        validate.renderFormErrors('auth/register'),
         ctrl.register
     );
 

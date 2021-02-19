@@ -17,42 +17,31 @@
         </fieldset>
     </form>
 
-    <form action="{{ routes('settings') }}" method="post">
+    <form action="{{ routes('settings/update-password') }}" method="post">
         <fieldset>
             <legend>Password</legend>
             <label>
                 <span>Current password {{ errors.oldPassword.msg }}:</span>
-                <input type="password" name="oldPassword" />
+                <input type="password" name="oldPassword" required />
             </label>
             <label>
                 <span>New password {{ errors.newPassword.msg }}:</span>
-                <input type="password" name="newPassword" />
+                <input type="password" name="newPassword" required />
             </label>
             <button name="type" value="password">Change password</button>
         </fieldset>
     </form>
 
-    <form action="{{ routes('settings') }}" method="post">
+    <form action="{{ routes('settings/delete-account') }}" method="post">
         <fieldset>
             <legend>Delete account</legend>
             <p>Delete your account and all data. This is irreversible.</p>
             <label>
                 <span>Password {{ errors.password.msg }}:</span>
-                <input type="password" name="password" />
+                <input type="password" name="password" required />
             </label>
             <button name="type" value="delete">Delete account</button>
         </fieldset>
     </form>
 </section>
-
-<section>
-    <h2>Sessions</h2>
-
-    <ul>
-        {% for session in activeSessions %}
-            <li>{{ session | dump }}</li>
-        {% endfor %}
-    </ul>
-</section>
-
 {% endblock %}

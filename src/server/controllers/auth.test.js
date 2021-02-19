@@ -312,6 +312,22 @@ describe('login', () => {
         expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
     });
 
+    test('should reopen account after login to cancelled account before expiration date', async () => {
+        const user = await User.create({ email, password });
+
+        user.isVerified = true;
+        user.deletedAt = Date.now();
+
+        const req = mockReq({
+            body: { email, password }
+        });
+
+        await ctrl.login(req, res);
+
+        expect(user.deletedAt).toBeUndefined();
+        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
+    });
+
 });
 
 describe('forgot password', () => {
@@ -433,7 +449,7 @@ describe('forgot password', () => {
         expect(mockTokens).toHaveLength(2);
         expect(userB.save).toHaveBeenCalled();
         expect(userB.password).toBe(newPassword);
-        expect(Session.cleanSessions).toHaveBeenCalledWith(userB._id);
+        expect(Session.revokeSessions).toHaveBeenCalledWith(userB._id);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             msg: {
                 text: i18n.__('auth.forgot.msg.success'),

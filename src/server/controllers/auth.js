@@ -93,6 +93,12 @@ export async function login(req, res) {
         await Token.deleteAll(user._id, TokenPurpose.EmailVerification);
     }
 
+    // Reopen account.
+    if (user.deletedAt) {
+        user.deletedAt = undefined;
+        await user.save();
+    }
+
     populateSession(user._id, req);
 
     if (callbackUrl && /^\/[^/]/.test(decodeURI(callbackUrl))) {
@@ -136,7 +142,7 @@ export async function resetPassword(req, res) {
 
         await user.save();
         await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
-        await Session.cleanSessions(user._id);
+        await Session.revokeSessions(user._id);
 
         res.render('auth/login', {
             msg: {

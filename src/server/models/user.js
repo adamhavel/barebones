@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { subscriptionSchema as subscription } from './subscription.js';
 
 const SALT_ROUNDS = 10;
+const DATA_RETENTION_DAYS = 30;
 
 const UserRole = Object.freeze({
     Superadmin: 'superadmin',
@@ -18,6 +19,7 @@ const userSchema = new db.Schema({
     isLocked: { type: Boolean, default: false },
     password: String,
     registeredAt: { type: Date, default: Date.now },
+    deletedAt: { type: Date, index: { expires: DATA_RETENTION_DAYS + 'd' }},
     subscription
 });
 

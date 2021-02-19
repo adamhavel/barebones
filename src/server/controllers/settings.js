@@ -3,30 +3,26 @@ import User from '../models/user.js';
 import Session from '../models/session.js';
 import { logout, regenerateSession } from './auth.js';
 
-export async function updateAccount(req, res, next) {
-    const { type } = req.body;
+export async function deleteAccount(req, res) {
+    req.user.deletedAt = Date.now();
+    req.user = await req.user.save();
 
-    switch (type) {
-        case 'password':
-            req.user.password = req.body.newPassword;
-            req.user = await req.user.save();
-            await Session.cleanSessions(req.user._id, req.session.id);
-            await regenerateSession(req);
-            break;
+    await Session.revokeSessions(req.user._id);
 
-        case 'email':
-            req.user.email = req.body.email;
-            req.user = await req.user.save();
-            break;
+    res.redirect(routes('landing'));
+}
 
-        case 'delete':
-            // TODO: Delete all tokens.
-            await User.findByIdAndDelete(req.user._id);
-            return logout(req, res);
+export async function updatePassword(req, res) {
+    req.user.password = req.body.newPassword;
+    req.user = await req.user.save();
 
-    }
+    await Session.revokeSessions(req.user._id, req.session.id);
+    await regenerateSession(req);
 
-    res.render('settings/account', {
-        msg: ''
+    res.render('settings/general', {
+        msg: {
+            text: 'Heslo zmeneno.',
+            type: 'info'
+        }
     });
 }
