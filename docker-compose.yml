@@ -21,6 +21,7 @@ services:
       - STRIPE_HOOK_SECRET
       - STRIPE_PRICE_ID
       - APP_HOST
+      - MAIL_ADDRESS
     volumes:
       - ./src:/app/src
       - static-assets:/app/build/client
@@ -38,6 +39,7 @@ services:
       - MAIL_SMTP_PORT
       - MAIL_USER
       - MAIL_PASSWORD
+      - MAIL_ADDRESS
     volumes:
       - ./src/mailer:/app/src/mailer
     depends_on:

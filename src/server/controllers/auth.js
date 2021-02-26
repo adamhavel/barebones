@@ -21,6 +21,7 @@ export function validateToken(purpose) {
         let namespace;
 
         switch (purpose) {
+            // TODO: Add email change
             case TokenPurpose.EmailVerification: {
                 namespace = 'login';
                 break;
@@ -61,8 +62,9 @@ export async function login(req, res) {
     if (!user.isVerified) {
         // No token provided.
         if (!token) throw new AuthError(i18n.__('auth.login.msg.account-not-verified'));
+        // TODO: Add option to resent email?
 
-        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification });
+        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification, userId: user._id });
 
         // Provided token invalid or expired.
         if (!validToken) {
@@ -71,10 +73,6 @@ export async function login(req, res) {
             sendRegistrationEmail(email, newToken);
 
             throw new AuthError(i18n.__('auth.login.msg.token-invalid'));
-        }
-
-        if (!validToken.userId.equals(user._id)) {
-            throw new AuthError(i18n.__('auth.login.msg.token-not-owner'));
         }
 
         // TODO: Update tests.
@@ -108,6 +106,7 @@ export async function login(req, res) {
     res.redirect(routes('dashboard'));
 }
 
+// TODO: Split
 export async function resetPassword(req, res) {
     const { token } = req.query;
 
@@ -121,6 +120,7 @@ export async function resetPassword(req, res) {
             sendPasswordResetEmail(email, newToken);
         }
 
+        // Show success message even if no user found, to prevent account fishing.
         res.render('auth/forgot', {
             msg: {
                 text: i18n.__('auth.forgot.msg.email-sent', { email }),

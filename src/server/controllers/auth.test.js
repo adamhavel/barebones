@@ -73,8 +73,12 @@ Token.create.mockImplementation(({ userId, purpose }) => {
     return Promise.resolve(token);
 });
 
-Token.findOne.mockImplementation(({ token, purpose }) => {
-    return Promise.resolve(mockTokens.find(validToken => validToken.token === token && validToken.purpose === purpose));
+Token.findOne.mockImplementation(({ token, purpose, userId }) => {
+    return Promise.resolve(mockTokens.find(validToken =>
+        validToken.token === token
+        && validToken.purpose === purpose
+        && (userId === undefined || validToken.userId === userId)
+    ));
 });
 
 Token.deleteAll.mockImplementation((id, tokenPurpose) => {
@@ -227,26 +231,6 @@ describe('login', () => {
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.login.msg.account-locked'));
-        }
-    });
-
-    test('should throw error if token belongs to another user', async () => {
-        const purpose = TokenPurpose.EmailVerification;
-        const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
-        const userB = await User.create({ email, password });
-        const tokenA = await Token.create({ userId: userA._id, purpose });
-        const tokenB = await Token.create({ userId: userB._id, purpose });
-
-        try {
-            await ctrl.login(mockReq({
-                body: { email, password },
-                query: {
-                    token: tokenA.token
-                }
-            }), res);
-        } catch(err) {
-            expect(err.statusCode).toBe(401);
-            expect(err.message).toBe(i18n.__('auth.login.msg.token-not-owner'));
         }
     });
 

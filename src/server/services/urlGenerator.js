@@ -20,3 +20,12 @@ export function getPasswordResetUrl(token) {
 
     return targetUrl.href;
 }
+
+export function getEmailAddressUpdateUrl(token) {
+    const targetUrl = new URL(baseUrl);
+
+    targetUrl.pathname = routes('settings');
+    targetUrl.searchParams.set('token', token);
+
+    return targetUrl.href;
+}

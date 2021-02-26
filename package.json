@@ -22,7 +22,7 @@
     "watch:test:unit": "npm run test:unit -- --watchAll",
     "watch:sass": "npm run build:sass -- --watch",
     "watch:js": "watch 'npm run build:js' src/client/js src/common",
-    "watch:app": "nodemon --ext js,html --watch src/server --watch src/common src/server/app.js",
+    "watch:app": "nodemon --ext js,html,json --watch src/server --watch src/common src/server/app.js",
     "update": "npm i --package-lock-only"
   },
   "repository": {
@@ -50,7 +50,8 @@
     "prom-client": "^13.1.0",
     "ramda": "^0.27.1",
     "response-time": "^2.3.2",
-    "stripe": "^8.137.0"
+    "stripe": "^8.137.0",
+    "striptags": "^3.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

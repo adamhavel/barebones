@@ -1,6 +1,11 @@
 import nodemailer from 'nodemailer';
 import MailTime from 'mail-time';
-import { getEmailVerificationUrl, getPasswordResetUrl } from './urlGenerator.js';
+import striptags from 'striptags';
+import * as urlGenerator from './urlGenerator.js';
+
+const {
+    MAIL_ADDRESS: mailAddress
+} = process.env;
 
 let mailQueue;
 
@@ -8,26 +13,41 @@ export function initMailQueue(db) {
     mailQueue = new MailTime({ db, type: 'client' });
 }
 
-export function sendRegistrationEmail(email, token) {
-    const verificationUrl = getEmailVerificationUrl(token);
-
+function sendMail(to, subject, html) {
     mailQueue.sendMail({
-        from: '"Fred Foo 👻" <foo@example.com>',
-        to: email,
-        subject: 'Verify your account',
-        text: `Open ${verificationUrl} to verify.`,
-        html: `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`
+        from: `AcmeCo <${mailAddress}>`,
+        to,
+        subject,
+        text: striptags(html),
+        html
     });
 }
 
-export function sendPasswordResetEmail(email, token) {
-    const verificationUrl = getPasswordResetUrl(token);
+export function sendRegistrationEmail(email, token) {
+    sendMail(
+        email,
+        i18n.__('auth.login.mail.subject'),
+        i18n.__('auth.login.mail.html', { url: urlGenerator.getEmailVerificationUrl(token) })
+    );
+}
 
-    mailQueue.sendMail({
-        from: '"Fred Foo 👻" <foo@example.com>',
-        to: email,
-        subject: 'Reset password',
-        text: `Open ${verificationUrl} to verify.`,
-        html: `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`
-    });
+export function sendPasswordResetEmail(email, token) {
+    sendMail(
+        email,
+        i18n.__('auth.forgot.mail.subject'),
+        i18n.__('auth.forgot.mail.html', { url: urlGenerator.getPasswordResetUrl(token) })
+    );
+}
+
+export function sendEmailAddressUpdateEmails(oldEmail, newEmail, token) {
+    const verificationUrl = urlGenerator.getEmailAddressUpdateUrl(token);
+
+    sendMail(oldEmail, 'E-mail has been updated', 'Your e-mail address has been updated.');
+    sendMail(newEmail, 'Update e-mail', `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`);
+
+    sendMail(
+        newEmail,
+        i18n.__('settings.account.update-email.mail.subject'),
+        i18n.__('settings.account.update-email.mail.html', { url: urlGenerator.getEmailAddressUpdateUrl(token) })
+    );
 }

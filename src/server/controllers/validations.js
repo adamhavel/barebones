@@ -20,10 +20,10 @@ export function renderFormErrors(view) {
     };
 };
 
+// TODO: Simplify validations.
 export function email(name = 'email') {
     return async (req, res, next) => {
         await body(name)
-            .if(body(name).exists())
             .notEmpty()
             .withMessage(i18n.__('common.form.error.email-empty'))
             .isEmail()
@@ -38,10 +38,34 @@ export function email(name = 'email') {
 export function uniqueEmail(name = 'email') {
     return async (req, res, next) => {
         await body(name)
-            .if(body(name).exists())
             .custom(async email => {
-                if (await User.findOne({ email })) {
+                const { user } = req;
+
+                if (email === user.emailCandidate) {
+                    return true;
+                }
+
+                if (await User.findOne({ email }) || await User.findOne({ emailCandidate: email })) {
                     throw new Error(i18n.__('common.form.error.email-not-available'));
+                }
+
+                return true;
+            })
+            .run(req);
+
+        next();
+    }
+}
+
+// TODO: Think through.
+export function differentEmail(name = 'email') {
+    return async (req, res, next) => {
+        await body(name)
+            .custom(async email => {
+                const { user } = req;
+
+                if (email === user.email) {
+                    throw new Error(i18n.__('common.form.error.email-not-different'));
                 }
 
                 return true;
@@ -55,7 +79,6 @@ export function uniqueEmail(name = 'email') {
 export function password(name = 'password') {
     return async (req, res, next) => {
         await body(name)
-            .if(body(name).exists())
             .isLength({ min: PASSWORD_MIN_LENGTH })
             .withMessage(i18n.__('common.form.error.password-length'))
             .run(req);
@@ -67,7 +90,6 @@ export function password(name = 'password') {
 export function passwordMatch(name = 'password') {
     return async (req, res, next) => {
         await body(name)
-            .if(body(name).exists())
             .custom(async password => {
                 if (!(await req.user.matchesPassword(password))) {
                     throw new Error(i18n.__('common.form.error.password-invalid'));
@@ -80,3 +102,4 @@ export function passwordMatch(name = 'password') {
         next();
     }
 }
+

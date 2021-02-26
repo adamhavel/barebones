@@ -7,14 +7,13 @@
                 "account-locked": "Účet byl zablokován.",
                 "account-not-verified": "Účet zatím nebyl potvrzen. Podívejte se na e-mail.",
                 "token-invalid": "Odkaz už bohužel vypršel. Na e-mail vám byl zaslán nový.",
-                "token-not-owner": "Odkaz není platný.",
                 "token-valid-prompt": "Přihlašte se pro potvrzení Vašeho účtu.",
                 "token-invalid-prompt": "Odkaz už bohužel vypršel. Zadejte přihlašovací údaje a zašleme Vám nový."
             },
             "form": {
                 "submit": "Přihlásit"
             },
-            "forgot-password-prompt": "Zapomněli jste heslo?"
+            "forgot-password-link": "Zapomněli jste heslo?"
         },
         "register": {
             "heading": "Vytvořte účet",
@@ -23,6 +22,10 @@
             },
             "form": {
                 "submit": "Vytvořit účet"
+            },
+            "mail": {
+                "subject": "Ověření e-mailové adresy",
+                "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro potvrzení vaší e-mailové adresy."
             }
         },
         "forgot": {
@@ -35,6 +38,51 @@
             },
             "form": {
                 "submit": "Změnit heslo"
+            },
+            "mail": {
+                "subject": "Nastavení nového hesla",
+                "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nového hesla."
+            }
+        }
+    },
+    "settings": {
+        "heading": "Nastavení",
+        "account": {
+            "heading": "Účet",
+            "update-email": {
+                "heading": "Změnit e-mail",
+                "desc": "",
+                "form": {
+                    "submit": "Změnit e-mail"
+                },
+                "msg": {
+                    "email-sent": "Na {{email}} byl poslán odkaz k potvrzení nového e-mailu.",
+                    "success": "E-mail změněn.",
+                    "token-invalid-prompt": "Odkaz už bohužel vypršel. Zkuste e-mail změnit znovu."
+                },
+                "mail": {
+                    "subject": "Potvrzení nové e-mailové adresy",
+                    "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nové e-mailové adresy."
+                }
+            },
+            "update-password": {
+                "heading": "Změnit heslo",
+                "desc": "",
+                "form": {
+                    "current-password": "Současné heslo",
+                    "new-password": "Nové heslo",
+                    "submit": "Změnit heslo"
+                },
+                "msg": {
+                    "success": "Heslo změněno."
+                }
+            },
+            "delete-account": {
+                "heading": "Zrušit účet",
+                "desc": "",
+                "form": {
+                    "submit": "Zrušit účet"
+                }
             }
         }
     },
