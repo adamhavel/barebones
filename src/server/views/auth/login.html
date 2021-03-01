@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ __('auth.login.heading') }}</h1>
-<form type="auth" action="{{ routes('auth/login') }}{{ querystring }}" method="post">
+<form type="auth" action="{{ routes('/auth/login') }}{{ querystring }}" method="post">
     <div>
         <label for="email">{{ __('common.form.email') }}</label>
         <input type="email" name="email" id="email" value="{{ body.email }}" required />
@@ -15,5 +15,5 @@
     </div>
     <button type="submit">{{ __('auth.login.form.submit') }}</button>
 </form>
-<p><a href="{{ routes('auth/forgot') }}">{{ __('auth.login.forgot-password-link') }}</a></p>
+<p><a href="{{ routes('/auth/reset') }}">{{ __('auth.login.reset-password-link') }}</a></p>
 {% endblock %}

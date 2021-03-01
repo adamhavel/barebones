@@ -5,7 +5,8 @@ import { render } from '../controllers/utils.js';
 
 const landing = express.Router();
 
-landing.route(routes('landing'))
+landing
+    .route(routes('landing'))
     .all(stopAuthenticated)
     .get(render('landing'))
 

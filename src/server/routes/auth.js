@@ -8,16 +8,15 @@ import { render, redirect, renderUserError } from '../controllers/utils.js';
 
 const auth = express.Router();
 
+auth.use(ctrl.stopAuthenticated);
+
 auth
     .route(routes('auth'))
-    .get(redirect(routes('auth/login')));
+    .get(redirect(routes('/auth/login')));
 
 auth
     .route(routes('auth/login'))
-    .all(
-        ctrl.stopAuthenticated,
-        ctrl.validateToken(TokenPurpose.EmailVerification)
-    )
+    .all(ctrl.validateToken(TokenPurpose.AccountVerification))
     .get(render('auth/login'))
     .post(
         validate.email(),
@@ -29,7 +28,6 @@ auth
 
 auth
     .route(routes('auth/register'))
-    .all(ctrl.stopAuthenticated)
     .get(render('auth/register'))
     .post(
         validate.email(),
@@ -40,18 +38,24 @@ auth
     );
 
 auth
-    .route(routes('auth/forgot'))
-    .all(
-        ctrl.stopAuthenticated,
-        ctrl.validateToken(TokenPurpose.PasswordReset)
-    )
-    .get(render('auth/forgot'))
+    .route(routes('auth/reset'))
+    .get(render('auth/reset/initiate'))
     .post(
         validate.email(),
+        validate.renderFormErrors('auth/reset/initiate'),
+        ctrl.initiatePasswordReset,
+        renderUserError('auth/reset/initiate')
+    );
+
+auth
+    .route(routes('auth/reset/confirm'))
+    .all(ctrl.validateToken(TokenPurpose.PasswordReset))
+    .get(render('auth/reset/confirm'))
+    .post(
         validate.password(),
-        validate.renderFormErrors('auth/login'),
+        validate.renderFormErrors('auth/reset/confirm'),
         ctrl.resetPassword,
-        renderUserError('auth/login')
+        renderUserError('auth/reset/confirm')
     );
 
 auth

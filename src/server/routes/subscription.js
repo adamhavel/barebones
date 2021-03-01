@@ -13,9 +13,10 @@ const {
 
 const subscription = express.Router();
 
+subscription.use(stopUnauthenticated);
+
 subscription
-    .route(routes('subscription'))
-    .all(stopUnauthenticated)
+    .route('/')
     .get(render('subscription/checkout', { stripePublicKey }));
 
 subscription
@@ -31,7 +32,6 @@ subscription
 subscription
     .route(routes('subscription/create-subscription'))
     .post(
-        stopUnauthenticated,
         bodyParser.json(),
         ctrl.createSubscription,
         (err, req, res, next) => {

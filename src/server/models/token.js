@@ -2,8 +2,9 @@ import crypto from 'crypto';
 import db from 'mongoose';
 
 const TokenPurpose = Object.freeze({
-    EmailVerification: 'email-verification',
-    PasswordReset: 'password-reset'
+    AccountVerification: 'account-verification',
+    PasswordReset: 'password-reset',
+    EmailUpdate: 'email-update'
 });
 
 const tokenSchema = new db.Schema({

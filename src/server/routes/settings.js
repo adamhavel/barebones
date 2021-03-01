@@ -8,9 +8,10 @@ import routes from '../../common/routes.js';
 
 const settings = express.Router();
 
+settings.use(stopUnauthenticated);
+
 settings
     .route(routes('settings'))
-    .all(stopUnauthenticated)
     .get(
         ctrl.validateEmailUpdate,
         render('settings/general'),
@@ -19,8 +20,7 @@ settings
 
 settings
     .route(routes('settings/delete-account'))
-    .all(stopUnauthenticated)
-    .get(redirect(routes('settings')))
+    .get(redirect(routes('/settings')))
     .post(
         validate.passwordMatch('delete-account__password'),
         validate.renderFormErrors('settings/general'),
@@ -29,8 +29,7 @@ settings
 
 settings
     .route(routes('settings/update-password'))
-    .all(stopUnauthenticated)
-    .get(redirect(routes('settings')))
+    .get(redirect(routes('/settings')))
     .post(
         validate.password('newPassword'),
         validate.passwordMatch('update-password__password'),
@@ -40,7 +39,7 @@ settings
 
 settings
     .route(routes('settings/update-email'))
-    .get(redirect(routes('settings')))
+    .get(redirect(routes('/settings')))
     .post(
         validate.email(),
         validate.uniqueEmail(),

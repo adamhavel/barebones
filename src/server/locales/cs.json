@@ -13,7 +13,7 @@
             "form": {
                 "submit": "Přihlásit"
             },
-            "forgot-password-link": "Zapomněli jste heslo?"
+            "reset-password-link": "Zapomněli jste heslo?"
         },
         "register": {
             "heading": "Vytvořte účet",
@@ -28,7 +28,7 @@
                 "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro potvrzení vaší e-mailové adresy."
             }
         },
-        "forgot": {
+        "reset": {
             "heading": "Nové heslo",
             "msg": {
                 "token-valid-prompt": "Nastavte Vaše nové heslo.",
@@ -42,6 +42,12 @@
             "mail": {
                 "subject": "Nastavení nového hesla",
                 "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nového hesla."
+            }
+        },
+        "update-email": {
+            "msg": {
+                "token-valid-prompt": "Přihlašte se pomocí staré e-mailové adresy pro potvrzení Vaší nové adresy.",
+                "token-invalid-prompt": "Odkaz už bohužel vypršel. Přihlašte se jako normálně a proveďte změnu e-mailu znovu."
             }
         }
     },
@@ -61,8 +67,14 @@
                     "token-invalid-prompt": "Odkaz už bohužel vypršel. Zkuste e-mail změnit znovu."
                 },
                 "mail": {
-                    "subject": "Potvrzení nové e-mailové adresy",
-                    "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nové e-mailové adresy."
+                    "new-address": {
+                        "subject": "Potvrzení nové e-mailové adresy",
+                        "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nové e-mailové adresy."
+                    },
+                    "old-address": {
+                        "subject": "Změna e-mailové adresy",
+                        "html": "E-mailová adresa u vašeho účtu byla změněna na {{email}}. Pokud jste změnu neprovedli, odpovězte na tento mail a my se na to podíváme."
+                    }
                 }
             },
             "update-password": {

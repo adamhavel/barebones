@@ -8,8 +8,7 @@ const {
     MONGO_DB: dbName,
     MAIL_SMTP_PORT: port,
     MAIL_USER: user,
-    MAIL_PASSWORD: pass,
-    MAIL_ADDRESS: address
+    MAIL_PASSWORD: pass
 } = process.env;
 
 // TODO: Handle auth.
@@ -19,8 +18,7 @@ if (user && pass) {
 
 const transport = nodemailer.createTransport({
     host: 'mailhog',
-    port,
-    from: `AcmeCo <${address}>`
+    port
 });
 
 (async function() {

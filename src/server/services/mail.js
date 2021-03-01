@@ -1,3 +1,4 @@
+import i18n from 'i18n';
 import nodemailer from 'nodemailer';
 import MailTime from 'mail-time';
 import striptags from 'striptags';
@@ -10,13 +11,15 @@ const {
 let mailQueue;
 
 export function initMailQueue(db) {
-    mailQueue = new MailTime({ db, type: 'client' });
+    if (!mailQueue) {
+        mailQueue = new MailTime({ db, type: 'client' });
+    }
 }
 
-function sendMail(to, subject, html) {
+export function sendMail(email, subject, html) {
     mailQueue.sendMail({
         from: `AcmeCo <${mailAddress}>`,
-        to,
+        to: email,
         subject,
         text: striptags(html),
         html
@@ -26,28 +29,29 @@ function sendMail(to, subject, html) {
 export function sendRegistrationEmail(email, token) {
     sendMail(
         email,
-        i18n.__('auth.login.mail.subject'),
-        i18n.__('auth.login.mail.html', { url: urlGenerator.getEmailVerificationUrl(token) })
+        i18n.__('auth.register.mail.subject'),
+        i18n.__('auth.register.mail.html', { url: urlGenerator.getAccountVerificationUrl(token) })
     );
 }
 
 export function sendPasswordResetEmail(email, token) {
     sendMail(
         email,
-        i18n.__('auth.forgot.mail.subject'),
-        i18n.__('auth.forgot.mail.html', { url: urlGenerator.getPasswordResetUrl(token) })
+        i18n.__('auth.reset.mail.subject'),
+        i18n.__('auth.reset.mail.html', { url: urlGenerator.getPasswordResetUrl(token) })
     );
 }
 
 export function sendEmailAddressUpdateEmails(oldEmail, newEmail, token) {
-    const verificationUrl = urlGenerator.getEmailAddressUpdateUrl(token);
-
-    sendMail(oldEmail, 'E-mail has been updated', 'Your e-mail address has been updated.');
-    sendMail(newEmail, 'Update e-mail', `Open <a class="t-cta" href="${verificationUrl}">${verificationUrl}</a> to verify.`);
+    sendMail(
+        oldEmail,
+        i18n.__('settings.account.update-email.mail.old-address.subject'),
+        i18n.__('settings.account.update-email.mail.old-address.html', { email: newEmail })
+    );
 
     sendMail(
         newEmail,
-        i18n.__('settings.account.update-email.mail.subject'),
-        i18n.__('settings.account.update-email.mail.html', { url: urlGenerator.getEmailAddressUpdateUrl(token) })
+        i18n.__('settings.account.update-email.mail.new-address.subject'),
+        i18n.__('settings.account.update-email.mail.new-address.html', { url: urlGenerator.getEmailAddressUpdateUrl(token) })
     );
 }

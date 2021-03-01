@@ -21,7 +21,7 @@ export function stopUnsubscribed(req, res, next) {
     if (isSubscribed || isTrialing) {
         next();
     } else {
-        res.redirect(routes('subscription'));
+        res.redirect(routes('/subscription'));
     }
 }
 

@@ -11,10 +11,9 @@ export async function validateEmailUpdate(req, res, next) {
     const { user, query: { token }, session } = req;
 
     if (token && user.emailCandidate) {
-        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification, userId: user._id });
+        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailUpdate, userId: user._id });
 
         if (!validToken) {
-            // TODO: Update text.
             throw new AuthError(i18n.__('settings.account.update-email.msg.token-invalid-prompt'));
         }
 
@@ -22,7 +21,7 @@ export async function validateEmailUpdate(req, res, next) {
         user.emailCandidate = undefined;
 
         await user.save();
-        await Token.deleteAll(user._id, TokenPurpose.EmailVerification);
+        await Token.deleteAll(user._id, TokenPurpose.EmailUpdate);
         await Session.revokeSessions(user._id, session.id);
 
         res.locals.user = user;
@@ -43,7 +42,7 @@ export async function deleteAccount(req, res) {
     await user.save();
     await Session.revokeSessions(user._id);
 
-    res.redirect(routes('landing'));
+    res.redirect(routes('/landing'));
 }
 
 export async function updatePassword(req, res) {
@@ -63,21 +62,22 @@ export async function updatePassword(req, res) {
     });
 }
 
+// TODO: Make custom validation
 export async function updateEmail(req, res) {
     const { user, body: { email } } = req;
 
     user.emailCandidate = email;
 
     await user.save();
-    await Token.deleteAll(user._id, TokenPurpose.EmailVerification);
+    await Token.deleteAll(user._id, TokenPurpose.EmailUpdate);
 
-    const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+    const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailUpdate });
 
     sendEmailAddressUpdateEmails(user.email, email, token);
 
     res.render('settings/general', {
         msg: {
-            text: i18n.__('settings.account.update-email.msg.email-sent'),
+            text: i18n.__('settings.account.update-email.msg.email-sent', { email }),
             type: 'info'
         }
     });

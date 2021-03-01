@@ -36,6 +36,8 @@ export default async (on, config) => {
             };
 
             const latestEmail = await new Promise(pollLatestMail);
+            console.log(latestEmail);
+            console.log('yay');
             const url = new URL(
                 htmlParser
                     .parse(latestEmail)
@@ -64,9 +66,7 @@ export default async (on, config) => {
                 await db.dropCollection('tokens');
                 await db.dropCollection('sessions');
 
-            } catch(err) {
-                console.log(err);
-            }
+            } catch(err) {}
 
             return null;
         }

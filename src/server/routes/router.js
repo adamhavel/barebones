@@ -1,5 +1,6 @@
 import express from 'express';
 
+import routes from '../../common/routes.js';
 import metrics from './metrics.js';
 import landing from './landing.js';
 import dashboard from './dashboard.js';
@@ -11,9 +12,9 @@ const router = express.Router();
 
 router.use(metrics);
 router.use(landing);
-router.use(dashboard);
-router.use(auth);
-router.use(settings);
-router.use(subscription);
+router.use(routes('/dashboard'), dashboard);
+router.use(routes('/auth'), auth);
+router.use(routes('/settings'), settings);
+router.use(routes('/subscription'), subscription);
 
 export default router;

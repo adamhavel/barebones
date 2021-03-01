@@ -6,10 +6,11 @@ import { render } from '../controllers/utils.js';
 
 const dashboard = express.Router();
 
-dashboard
-    .route(routes('dashboard'))
-    .all(stopUnauthenticated)
-    .all(stopUnsubscribed)
-    .get(render('dashboard'))
+dashboard.use(
+    stopUnauthenticated,
+    stopUnsubscribed
+);
+
+dashboard.get('/', render('dashboard'))
 
 export default dashboard;

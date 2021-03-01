@@ -39,12 +39,11 @@ export function uniqueEmail(name = 'email') {
     return async (req, res, next) => {
         await body(name)
             .custom(async email => {
-                const { user } = req;
-
-                if (email === user.emailCandidate) {
+                if (email === req.user?.emailCandidate) {
                     return true;
                 }
 
+                // TODO: Rewrite to user id.
                 if (await User.findOne({ email }) || await User.findOne({ emailCandidate: email })) {
                     throw new Error(i18n.__('common.form.error.email-not-available'));
                 }

@@ -22,12 +22,16 @@ export function validateToken(purpose) {
 
         switch (purpose) {
             // TODO: Add email change
-            case TokenPurpose.EmailVerification: {
+            case TokenPurpose.AccountVerification: {
                 namespace = 'login';
                 break;
             }
             case TokenPurpose.PasswordReset: {
-                namespace = 'forgot';
+                namespace = 'reset';
+                break;
+            }
+            case TokenPurpose.EmailUpdate: {
+                namespace = 'update-email';
                 break;
             }
         }
@@ -64,11 +68,11 @@ export async function login(req, res) {
         if (!token) throw new AuthError(i18n.__('auth.login.msg.account-not-verified'));
         // TODO: Add option to resent email?
 
-        const validToken = await Token.findOne({ token, purpose: TokenPurpose.EmailVerification, userId: user._id });
+        const validToken = await Token.findOne({ token, purpose: TokenPurpose.AccountVerification, userId: user._id });
 
         // Provided token invalid or expired.
         if (!validToken) {
-            const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+            const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
 
             sendRegistrationEmail(email, newToken);
 
@@ -88,7 +92,7 @@ export async function login(req, res) {
 
         await user.save();
         // Delete all tokens created during verification process.
-        await Token.deleteAll(user._id, TokenPurpose.EmailVerification);
+        await Token.deleteAll(user._id, TokenPurpose.AccountVerification);
     }
 
     // Reopen account.
@@ -103,54 +107,52 @@ export async function login(req, res) {
         return res.redirect(decodeURI(callbackUrl));
     }
 
-    res.redirect(routes('dashboard'));
+    res.redirect(routes('/dashboard'));
 }
 
-// TODO: Split
+export async function initiatePasswordReset(req, res) {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user) {
+        const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
+
+        sendPasswordResetEmail(email, newToken);
+    }
+
+    // Show success message even if no user found, to prevent account fishing.
+    res.render('auth/reset/initiate', {
+        msg: {
+            text: i18n.__('auth.reset.msg.email-sent', { email }),
+            type: 'info'
+        }
+    });
+}
+
 export async function resetPassword(req, res) {
     const { token } = req.query;
+    const { password } = req.body;
+    const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
-    if (!token) {
-        const { email } = req.body;
-        const user = await User.findOne({ email });
-
-        if (user) {
-            const { token: newToken } = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
-
-            sendPasswordResetEmail(email, newToken);
-        }
-
-        // Show success message even if no user found, to prevent account fishing.
-        res.render('auth/forgot', {
-            msg: {
-                text: i18n.__('auth.forgot.msg.email-sent', { email }),
-                type: 'info'
-            }
-        });
-    } else {
-        const { password } = req.body;
-        const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
-
-        if (!validToken) {
-            throw new AuthError(i18n.__('auth.forgot.msg.token-invalid-prompt'));
-        }
-
-        // TODO: Check if user exists.
-        const user = await User.findById(validToken.userId);
-
-        user.password = password;
-
-        await user.save();
-        await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
-        await Session.revokeSessions(user._id);
-
-        res.render('auth/login', {
-            msg: {
-                text: i18n.__('auth.forgot.msg.success'),
-                type: 'info'
-            }
-        });
+    if (!validToken) {
+        throw new AuthError(i18n.__('auth.reset.msg.token-invalid-prompt'));
     }
+
+    // TODO: Check if user exists.
+    const user = await User.findById(validToken.userId);
+
+    user.password = password;
+
+    await user.save();
+    await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
+    await Session.revokeSessions(user._id);
+
+    res.render('auth/login', {
+        msg: {
+            text: i18n.__('auth.reset.msg.success'),
+            type: 'info'
+        }
+    });
 }
 
 function populateSession(userId, req) {
@@ -161,7 +163,7 @@ function populateSession(userId, req) {
 export async function register(req, res) {
     const { email, password } = req.body;
     const newUser = await User.create({ email, password });
-    const { token } = await Token.create({ userId: newUser._id, purpose: TokenPurpose.EmailVerification });
+    const { token } = await Token.create({ userId: newUser._id, purpose: TokenPurpose.AccountVerification });
 
     sendRegistrationEmail(email, token);
 
@@ -177,7 +179,7 @@ export function logout(req, res) {
     req.session.destroy(err => {
         if (err) throw new ApplicationError(err);
 
-        res.redirect(routes('landing'));
+        res.redirect(routes('/landing'));
     });
 }
 
@@ -216,8 +218,7 @@ export function stopUnauthenticated(req, res, next) {
         res.status(401).render('auth/login', {
             querystring: Url.format({
                 query: {
-                    ...req.query,
-                    callbackUrl: req.url
+                    callbackUrl: req.originalUrl
                 }
             })
         });
@@ -227,8 +228,8 @@ export function stopUnauthenticated(req, res, next) {
 }
 
 export function stopAuthenticated(req, res, next) {
-    if (req.user) {
-        res.redirect(routes('dashboard'));
+    if (req.user && req.originalUrl !== routes('/auth/logout')) {
+        res.redirect(routes('/dashboard'));
     } else {
         next();
     }

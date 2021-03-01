@@ -30,7 +30,7 @@ describe('Authentication', () => {
         const { email, password } = this.user;
         const newPassword = 'foobar';
 
-        cy.visit(route('auth/forgot'));
+        cy.visit(route('auth/reset'));
         cy.submitCredentials(email);
 
         cy.task('getUrlFromLastMail', email).then(cy.visit);

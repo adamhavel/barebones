@@ -99,7 +99,7 @@ describe('register', () => {
         await ctrl.register(mockReq({ body: { email, password } }), res);
 
         const user = mockUsers.find(user => user.email === email && user.password === password);
-        const registrationToken = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.EmailVerification);
+        const registrationToken = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.AccountVerification);
 
         expect(user).toBeDefined();
         expect(registrationToken).toBeDefined();
@@ -118,14 +118,14 @@ describe('login', () => {
 
     test('should render message with prompt to enter credentials if token is invalid', async () => {
         const user = await User.create({ email, password });
-        const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+        const resetToken = await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
         const query = {
             token: 'foo'
         };
         const req = mockReq({ query });
         const next = jest.fn();
 
-        await ctrl.validateToken(TokenPurpose.EmailVerification)(req, res, next);
+        await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
         expect(res.locals).toStrictEqual({
             isTokenValid: false,
@@ -139,14 +139,14 @@ describe('login', () => {
 
     test('should render message with prompt to login if token is valid', async () => {
         const user = await User.create({ email, password });
-        const verificationToken = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+        const verificationToken = await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
         const query = {
             token: verificationToken.token
         };
         const req = mockReq({ query });
         const next = jest.fn();
 
-        await ctrl.validateToken(TokenPurpose.EmailVerification)(req, res, next);
+        await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
         expect(res.locals).toStrictEqual({
             isTokenValid: true,
@@ -200,7 +200,7 @@ describe('login', () => {
 
     test('should throw error and send new token via e-mail if token is invalid or expired', async () => {
         const user = await User.create({ email, password });
-        const token = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailVerification });
+        const token = await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
 
         try {
             await ctrl.login(mockReq({
@@ -210,7 +210,7 @@ describe('login', () => {
                 }
             }), res);
         } catch(err) {
-            const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.EmailVerification);
+            const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.AccountVerification);
 
             expect(registrationTokens).toHaveLength(2);
             expect(sendRegistrationEmail).toHaveBeenCalledWith(email, registrationTokens[1].token);
@@ -235,7 +235,7 @@ describe('login', () => {
     });
 
     test('should verify and login user, start trial subscription, redirect to dashboard and delete all registration tokens if token is valid', async () => {
-        const purpose = TokenPurpose.EmailVerification;
+        const purpose = TokenPurpose.AccountVerification;
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });
         const tokenA = await Token.create({ userId: userA._id, purpose });
@@ -251,7 +251,7 @@ describe('login', () => {
 
         await ctrl.login(req, res);
         const registrationTokens = mockTokens.filter(
-            ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.EmailVerification
+            ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.AccountVerification
         );
 
         expect(registrationTokens).toHaveLength(0);
@@ -330,7 +330,7 @@ describe('forgot password', () => {
         expect(res.locals).toStrictEqual({
             isTokenValid: false,
             msg: {
-                text: i18n.__('auth.forgot.msg.token-invalid-prompt'),
+                text: i18n.__('auth.reset.msg.token-invalid-prompt'),
                 type: 'info'
             }
         });
@@ -351,7 +351,7 @@ describe('forgot password', () => {
         expect(res.locals).toStrictEqual({
             isTokenValid: true,
             msg: {
-                text: i18n.__('auth.forgot.msg.token-valid-prompt'),
+                text: i18n.__('auth.reset.msg.token-valid-prompt'),
                 type: 'info'
             }
         });
@@ -365,9 +365,9 @@ describe('forgot password', () => {
 
         await ctrl.resetPassword(req, res);
 
-        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+        expect(res.render).toHaveBeenCalledWith('auth/reset', {
             msg: {
-                text: i18n.__('auth.forgot.msg.email-sent', { email }),
+                text: i18n.__('auth.reset.msg.email-sent', { email }),
                 type: 'info'
             }
         });
@@ -385,9 +385,9 @@ describe('forgot password', () => {
 
         expect(resetToken).toBeDefined();
         expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, resetToken.token);
-        expect(res.render).toHaveBeenCalledWith('auth/forgot', {
+        expect(res.render).toHaveBeenCalledWith('auth/reset', {
             msg: {
-                text: i18n.__('auth.forgot.msg.email-sent', { email }),
+                text: i18n.__('auth.reset.msg.email-sent', { email }),
                 type: 'info'
             }
         });
@@ -406,14 +406,14 @@ describe('forgot password', () => {
             await ctrl.resetPassword(req, res);
         } catch(err) {
             expect(err.statusCode).toBe(401);
-            expect(err.message).toBe(i18n.__('auth.forgot.msg.token-invalid-prompt'));
+            expect(err.message).toBe(i18n.__('auth.reset.msg.token-invalid-prompt'));
         }
     });
 
     test('should change user password, render login form, delete all password reset tokens and clean all user sessions if token is valid', async () => {
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });
-        const tokenA = await Token.create({ userId: userA._id, purpose: TokenPurpose.EmailVerification });
+        const tokenA = await Token.create({ userId: userA._id, purpose: TokenPurpose.AccountVerification });
         const tokenB = await Token.create({ userId: userB._id, purpose: TokenPurpose.PasswordReset });
         const tokenC = await Token.create({ userId: userB._id, purpose: TokenPurpose.PasswordReset });
         const tokenD = await Token.create({ userId: userB._id, purpose: TokenPurpose.AccountCancellation });
@@ -436,7 +436,7 @@ describe('forgot password', () => {
         expect(Session.revokeSessions).toHaveBeenCalledWith(userB._id);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             msg: {
-                text: i18n.__('auth.forgot.msg.success'),
+                text: i18n.__('auth.reset.msg.success'),
                 type: 'info'
             }
         });
@@ -507,7 +507,7 @@ describe('authentication', () => {
         };
         const next = jest.fn();
 
-        ctrl.stopUnauthenticated(mockReq({ url, query }), res, next);
+        ctrl.stopUnauthenticated(mockReq({ baseUrl: url, query }), res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.render).toHaveBeenCalledWith('auth/login', {

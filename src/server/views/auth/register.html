@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ __('auth.register.heading') }}</h1>
-<form type="auth" action="{{ routes('auth/register') }}" method="post">
+<form type="auth" action="{{ routes('/auth/register') }}" method="post">
     <div>
         <label for="email">{{ __('common.form.email') }}</label>
         <input type="email" name="email" id="email" value="{{ body.email }}" required />
