@@ -11,7 +11,7 @@ import Url from 'url';
 
 import { authenticate } from './controllers/auth.js';
 import router from './routes/router.js';
-import routes from '../common/routes.js';
+import x from '../common/routes.js';
 import { initMailQueue } from './services/mail.js';
 
 // Environment
@@ -36,7 +36,7 @@ nunjucks
         express: app,
         noCache: true
     })
-    .addGlobal('routes', routes);
+    .addGlobal('x', x);
 
 i18n.configure({
     directory: 'src/server/locales',

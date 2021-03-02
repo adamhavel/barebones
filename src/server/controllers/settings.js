@@ -1,5 +1,5 @@
 import i18n from 'i18n';
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 import { sendEmailAddressUpdateEmails } from '../services/mail.js';
@@ -42,7 +42,7 @@ export async function deleteAccount(req, res) {
     await user.save();
     await Session.revokeSessions(user._id);
 
-    res.redirect(routes('/landing'));
+    res.redirect(x('/landing'));
 }
 
 export async function updatePassword(req, res) {

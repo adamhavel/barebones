@@ -4,7 +4,7 @@ import db from 'mongoose';
 import moment from 'moment';
 import Url from 'url';
 
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
@@ -261,7 +261,7 @@ describe('login', () => {
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
-        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
+        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
     });
 
     test('should login verified user and redirect to callback url', async () => {
@@ -293,7 +293,7 @@ describe('login', () => {
 
         await ctrl.login(req, res);
 
-        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
+        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
     });
 
     test('should reopen account after login to cancelled account before expiration date', async () => {
@@ -309,7 +309,7 @@ describe('login', () => {
         await ctrl.login(req, res);
 
         expect(user.deletedAt).toBeUndefined();
-        expect(res.redirect).toHaveBeenCalledWith(routes('dashboard'));
+        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
     });
 
 });
@@ -363,9 +363,9 @@ describe('forgot password', () => {
             body: { email }
         });
 
-        await ctrl.resetPassword(req, res);
+        await ctrl.initiatePasswordReset(req, res);
 
-        expect(res.render).toHaveBeenCalledWith('auth/reset', {
+        expect(res.render).toHaveBeenCalledWith('auth/reset/initiate', {
             msg: {
                 text: i18n.__('auth.reset.msg.email-sent', { email }),
                 type: 'info'
@@ -379,13 +379,13 @@ describe('forgot password', () => {
             body: { email }
         });
 
-        await ctrl.resetPassword(req, res);
+        await ctrl.initiatePasswordReset(req, res);
 
         const resetToken = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.PasswordReset);
 
         expect(resetToken).toBeDefined();
         expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, resetToken.token);
-        expect(res.render).toHaveBeenCalledWith('auth/reset', {
+        expect(res.render).toHaveBeenCalledWith('auth/reset/initiate', {
             msg: {
                 text: i18n.__('auth.reset.msg.email-sent', { email }),
                 type: 'info'
@@ -496,7 +496,7 @@ describe('authentication', () => {
 
         expect(req.user).toBeUndefined();
         expect(req.session.destroy).toHaveBeenCalled();
-        expect(res.redirect).toHaveBeenCalledWith(routes('landing'));
+        expect(res.redirect).toHaveBeenCalledWith(x('/landing'));
         expect(next).not.toHaveBeenCalled();
     });
 
@@ -507,10 +507,14 @@ describe('authentication', () => {
         };
         const next = jest.fn();
 
-        ctrl.stopUnauthenticated(mockReq({ baseUrl: url, query }), res, next);
+        ctrl.stopUnauthenticated(mockReq({ originalUrl: url, query }), res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.render).toHaveBeenCalledWith('auth/login', {
+            msg: {
+                text: i18n.__('auth.login.msg.login-prompt'),
+                type: 'info'
+            },
             querystring: Url.format({
                 query: {
                     ...query,

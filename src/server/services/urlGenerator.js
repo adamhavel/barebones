@@ -1,4 +1,4 @@
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 
 // TODO: https
 const baseUrl = 'http://' + process.env.APP_HOST;
@@ -6,7 +6,7 @@ const baseUrl = 'http://' + process.env.APP_HOST;
 export function getAccountVerificationUrl(token) {
     const targetUrl = new URL(baseUrl);
 
-    targetUrl.pathname = routes('auth/login');
+    targetUrl.pathname = x('/auth/login');
     targetUrl.searchParams.set('token', token);
 
     return targetUrl.href;
@@ -15,7 +15,7 @@ export function getAccountVerificationUrl(token) {
 export function getPasswordResetUrl(token) {
     const targetUrl = new URL(baseUrl);
 
-    targetUrl.pathname = routes('auth/reset/confirm');
+    targetUrl.pathname = x('/auth/reset/confirm');
     targetUrl.searchParams.set('token', token);
 
     return targetUrl.href;
@@ -24,7 +24,7 @@ export function getPasswordResetUrl(token) {
 export function getEmailAddressUpdateUrl(token) {
     const targetUrl = new URL(baseUrl);
 
-    targetUrl.pathname = routes('settings');
+    targetUrl.pathname = x('/settings');
     targetUrl.searchParams.set('token', token);
 
     return targetUrl.href;

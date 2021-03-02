@@ -1,4 +1,4 @@
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 import stripe, {
     STRIPE_SIGNATURE_HEADER,
     StripeSubscriptionStatus,
@@ -21,7 +21,7 @@ export function stopUnsubscribed(req, res, next) {
     if (isSubscribed || isTrialing) {
         next();
     } else {
-        res.redirect(routes('/subscription'));
+        res.redirect(x('/subscription'));
     }
 }
 

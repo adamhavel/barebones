@@ -2,7 +2,7 @@ import i18n from 'i18n';
 import moment from 'moment';
 import Url from 'url';
 
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import User from '../models/user.js';
@@ -21,17 +21,12 @@ export function validateToken(purpose) {
         let namespace;
 
         switch (purpose) {
-            // TODO: Add email change
             case TokenPurpose.AccountVerification: {
                 namespace = 'login';
                 break;
             }
             case TokenPurpose.PasswordReset: {
                 namespace = 'reset';
-                break;
-            }
-            case TokenPurpose.EmailUpdate: {
-                namespace = 'update-email';
                 break;
             }
         }
@@ -107,7 +102,7 @@ export async function login(req, res) {
         return res.redirect(decodeURI(callbackUrl));
     }
 
-    res.redirect(routes('/dashboard'));
+    res.redirect(x('/dashboard'));
 }
 
 export async function initiatePasswordReset(req, res) {
@@ -135,6 +130,7 @@ export async function resetPassword(req, res) {
     const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
 
     if (!validToken) {
+        // TODO: Add link to initiate.
         throw new AuthError(i18n.__('auth.reset.msg.token-invalid-prompt'));
     }
 
@@ -179,7 +175,7 @@ export function logout(req, res) {
     req.session.destroy(err => {
         if (err) throw new ApplicationError(err);
 
-        res.redirect(routes('/landing'));
+        res.redirect(x('/landing'));
     });
 }
 
@@ -216,8 +212,13 @@ export async function authenticate(req, res, next) {
 export function stopUnauthenticated(req, res, next) {
     if (!req.user) {
         res.status(401).render('auth/login', {
+            msg: {
+                text: i18n.__('auth.login.msg.login-prompt'),
+                type: 'info'
+            },
             querystring: Url.format({
                 query: {
+                    ...req.query,
                     callbackUrl: req.originalUrl
                 }
             })
@@ -228,8 +229,8 @@ export function stopUnauthenticated(req, res, next) {
 }
 
 export function stopAuthenticated(req, res, next) {
-    if (req.user && req.originalUrl !== routes('/auth/logout')) {
-        res.redirect(routes('/dashboard'));
+    if (req.user && req.originalUrl !== x('/auth/logout')) {
+        res.redirect(x('/dashboard'));
     } else {
         next();
     }

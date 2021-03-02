@@ -1,13 +1,11 @@
 import express from 'express';
-import routes from '../../common/routes.js';
-import { stopAuthenticated } from '../controllers/auth.js';
+import x from '../../common/routes.js';
 import { render } from '../controllers/utils.js';
 
 const landing = express.Router();
 
 landing
-    .route(routes('landing'))
-    .all(stopAuthenticated)
+    .route(x('/landing'))
     .get(render('landing'))
 
 export default landing;

@@ -1,10 +1,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import routes from '../../common/routes.js';
+import x from '../../common/routes.js';
 import * as ctrl from '../controllers/subscription.js';
 import { render } from '../controllers/utils.js';
-import { stopUnauthenticated } from '../controllers/auth.js';
 
 const {
     STRIPE_PUBLIC_KEY: stripePublicKey,
@@ -13,10 +12,8 @@ const {
 
 const subscription = express.Router();
 
-subscription.use(stopUnauthenticated);
-
 subscription
-    .route('/')
+    .route(x('/subscription'))
     .get(render('subscription/checkout', { stripePublicKey }));
 
 subscription
@@ -30,7 +27,7 @@ subscription
     );
 
 subscription
-    .route(routes('subscription/create-subscription'))
+    .route(x('/subscription/create-subscription'))
     .post(
         bodyParser.json(),
         ctrl.createSubscription,

@@ -24,18 +24,11 @@ const routes = {
 };
 
 const route = function(path) {
-    let includeMount = path.startsWith('/');
-    let pathArr = path.split('/');
+    let pathArr = path.slice(1).split('/');
     let current = routes;
 
-    if (!pathArr.length) return '/';
-
-    return pathArr
-      .filter(item => item.length)
-      .reduce((acc, item, index) => {
+    return pathArr.reduce((acc, item, index) => {
         current = current[item];
-
-        if (index === 0 && !includeMount) return acc;
 
         let isLeaf = typeof current === 'string';
 

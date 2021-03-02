@@ -1,0 +1,13 @@
+{% extends "../../document.html" %}
+
+{% block content %}
+<h1>{{ __('auth.reset.heading') }}</h1>
+<form type="auth" action="{{ x('/auth/reset/confirm') }}{{ querystring }}" method="post">
+    <div>
+        <label for="password">{{ __('common.form.password') }}</label>
+        <input type="password" name="password" id="password" required />
+        {% if errors.password %}<p>{{ errors.password.msg }}</p>{% endif %}
+    </div>
+    <button type="submit">{{ __('auth.reset.form.submit') }}</button>
+</form>
+{% endblock %}

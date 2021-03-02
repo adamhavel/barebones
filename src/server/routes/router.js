@@ -1,6 +1,8 @@
 import express from 'express';
 
-import routes from '../../common/routes.js';
+import { stopUnauthenticated, stopAuthenticated } from '../controllers/auth.js';
+import { stopUnsubscribed } from '../controllers/subscription.js';
+import x from '../../common/routes.js';
 import metrics from './metrics.js';
 import landing from './landing.js';
 import dashboard from './dashboard.js';
@@ -10,11 +12,28 @@ import subscription from './subscription.js';
 
 const router = express.Router();
 
-router.use(metrics);
-router.use(landing);
-router.use(routes('/dashboard'), dashboard);
-router.use(routes('/auth'), auth);
-router.use(routes('/settings'), settings);
-router.use(routes('/subscription'), subscription);
+router.use(
+    [x('/dashboard'), x('/settings'), x('/subscription')],
+    stopUnauthenticated
+);
+
+router.use(
+    [x('/auth')],
+    stopAuthenticated
+);
+
+router.use(
+    [x('/dashboard')],
+    stopUnsubscribed
+);
+
+router.use(
+    metrics,
+    landing,
+    dashboard,
+    auth,
+    settings,
+    subscription
+);
 
 export default router;

@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>{{ __('auth.reset.heading') }}</h1>
-<form type="auth" action="{{ routes('/auth/reset') }}{{ querystring }}" method="post">
+<form type="auth" action="{{ x('/auth/reset') }}{{ querystring }}" method="post">
     {% if isTokenValid %}
         <div>
             <label for="password">{{ __('common.form.password') }}</label>

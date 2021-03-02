@@ -6,7 +6,7 @@
 <section>
     <h2>{{ __('settings.account.heading') }}</h2>
 
-    <form action="{{ routes('/settings/update-email') }}" method="post">
+    <form action="{{ x('/settings/update-email') }}" method="post">
         <fieldset>
             <legend>{{ __('settings.account.update-email.heading') }}</legend>
             <label for="email">{{ __('common.form.email') }}</label>
@@ -19,7 +19,7 @@
         </fieldset>
     </form>
 
-    <form action="{{ routes('/settings/update-password') }}" method="post">
+    <form action="{{ x('/settings/update-password') }}" method="post">
         <fieldset>
             <legend>{{ __('settings.account.update-password.heading') }}</legend>
             <label for="newPassword">{{ __('settings.account.update-password.form.new-password') }}</label>
@@ -32,7 +32,7 @@
         </fieldset>
     </form>
 
-    <form action="{{ routes('/settings/delete-account') }}" method="post">
+    <form action="{{ x('/settings/delete-account') }}" method="post">
         <fieldset>
             <legend>{{ __('settings.account.delete-account.heading') }}</legend>
             <p>{{ __('settings.account.delete-account.desc') }}</p>
