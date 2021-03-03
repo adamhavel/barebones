@@ -1,11 +1,11 @@
-import route from '../../common/routes.js';
+import x from '../../common/routes.js';
 
 describe('Authentication', () => {
 
     it('Registering new user', function() {
         const { email, password } = this.user;
 
-        cy.visit(route('auth/register'));
+        cy.visit(x('/auth/register'));
         cy.submitCredentials(email, password);
 
         cy.task('getUrlFromLastMail', email).then(cy.visit);
@@ -15,7 +15,7 @@ describe('Authentication', () => {
     });
 
     it('Logging in', function() {
-        cy.visit(route('auth/login'));
+        cy.visit(x('/auth/login'));
         cy.submitCredentials(this.user.email, this.user.password);
         cy.getSessionCookie().should('exist');
     });
@@ -30,7 +30,7 @@ describe('Authentication', () => {
         const { email, password } = this.user;
         const newPassword = 'foobar';
 
-        cy.visit(route('auth/reset'));
+        cy.visit(x('/auth/reset'));
         cy.submitCredentials(email);
 
         cy.task('getUrlFromLastMail', email).then(cy.visit);

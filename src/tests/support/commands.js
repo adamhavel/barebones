@@ -1,9 +1,9 @@
-import route from '../../common/routes.js';
+import x from '../../common/routes.js';
 
 Cypress.Commands.add('login', (email, password) => {
     cy.request({
         method: 'POST',
-        url: route('auth/login'),
+        url: x('/auth/login'),
         body: { email, password },
         form: true
     });

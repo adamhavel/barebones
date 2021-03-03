@@ -36,8 +36,6 @@ export default async (on, config) => {
             };
 
             const latestEmail = await new Promise(pollLatestMail);
-            console.log(latestEmail);
-            console.log('yay');
             const url = new URL(
                 htmlParser
                     .parse(latestEmail)
