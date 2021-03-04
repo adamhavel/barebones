@@ -91,6 +91,7 @@ export async function login(req, res) {
     }
 
     // Reopen account.
+    // TODO: Update unit tests.
     if (user.deletedAt) {
         user.deletedAt = undefined;
         await user.save();

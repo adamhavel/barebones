@@ -2,6 +2,7 @@ import i18n from 'i18n';
 import x from '../../common/routes.js';
 import User from '../models/user.js';
 import Session from '../models/session.js';
+import stripe from '../services/stripe.js';
 import { sendEmailAddressUpdateEmails } from '../services/mail.js';
 import { logout, regenerateSession } from './auth.js';
 import Token, { TokenPurpose } from '../models/token.js';
@@ -19,6 +20,11 @@ export async function validateEmailUpdate(req, res, next) {
 
         user.email = user.emailCandidate;
         user.emailCandidate = undefined;
+
+        await stripe.customers.update(
+            user.subscription.stripeCustomerId,
+            { email: user.email }
+        );
 
         await user.save();
         await Token.deleteAll(user._id, TokenPurpose.EmailUpdate);
@@ -52,7 +58,6 @@ export async function updatePassword(req, res) {
 
     await user.save();
     await Session.revokeSessions(user._id, session.id);
-    await regenerateSession(req);
 
     res.render('settings/general', {
         msg: {

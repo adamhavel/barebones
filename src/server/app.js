@@ -1,6 +1,6 @@
 import express from 'express';
 import session from 'express-session';
-import sessionStoreFactory from 'connect-mongo';
+import sessionStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import compression from 'compression';
@@ -24,7 +24,6 @@ const {
     MONGO_DB: dbName
 } = process.env;
 const app = express();
-const SessionStore = sessionStoreFactory(session);
 
 app.set('trust proxy', true);
 app.set('view engine', 'html');
@@ -63,10 +62,10 @@ i18n.configure({
         resave: false,
         saveUninitialized: false,
         proxy: true,
-        store: new SessionStore({
-            mongooseConnection: connection,
+        store: sessionStore.default.create({
+            clientPromise: Promise.resolve(connection.getClient()),
             stringify: false,
-            touchAfter: 24 * 3600
+            touchAfter: 60*60*24
         }),
         cookie: {
             sameSite: 'lax',
@@ -78,6 +77,7 @@ i18n.configure({
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(i18n.init);
     app.use(authenticate);
+
     app.use((req, res, next) => {
         const { query, body } = req;
 
@@ -90,8 +90,8 @@ i18n.configure({
 
         next();
     });
-    app.use(router);
 
+    app.use(router);
 
     // Errors
     app.use((err, req, res, next) => {

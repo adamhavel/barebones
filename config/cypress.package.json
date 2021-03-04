@@ -2,10 +2,10 @@
   "type": "module",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "mongoose": "^5.11.15",
-    "stripe": "^8.135.0",
-    "cypress": "^6.5.0",
+    "mongoose": "^5.11.18",
+    "stripe": "^8.137.0",
+    "cypress": "^6.6.0",
     "mailhog": "^4.15.0",
-    "node-html-parser": "^2.0.2"
+    "node-html-parser": "^3.0.3"
   }
 }

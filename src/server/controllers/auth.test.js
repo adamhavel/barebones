@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import i18n from 'i18n';
 import db from 'mongoose';
-import moment from 'moment';
 import Url from 'url';
 
 import x from '../../common/routes.js';
