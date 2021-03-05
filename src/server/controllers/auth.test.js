@@ -1,6 +1,4 @@
-import crypto from 'crypto';
 import i18n from 'i18n';
-import db from 'mongoose';
 import moment from 'moment';
 import Url from 'url';
 
@@ -13,85 +11,7 @@ import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 
-jest.mock('../services/mail.js');
-jest.mock('../models/token.js');
-jest.mock('../models/user.js');
-jest.mock('../models/session.js');
-
-let mockTokens, mockUsers;
-const tokenStrings = [...Array(5)].map(() => crypto.randomBytes(8).toString('hex'));
-const { ObjectId } = db.Types;
-const res = mockRes();
-const email = 'jane.doe@example.com';
-const password = '12345';
-
-stripe.customers.list = jest.fn(({ email }) => Promise.resolve({
-    data: []
-}));
-
-stripe.customers.create = jest.fn(({ email }) => Promise.resolve({
-    email,
-    id: crypto.randomBytes(8).toString('hex')
-}));
-
-User.create.mockImplementation(({ email, password }) => {
-    const user = {
-        _id: ObjectId(),
-        email,
-        password,
-        isVerified: false,
-        isLocked: false,
-        matchesPassword(pwd) {
-            return pwd === this.password;
-        },
-        save: jest.fn(() => Promise.resolve(this))
-    };
-
-    mockUsers.push(user);
-
-    return Promise.resolve(user);
-});
-
-User.findOne.mockImplementation(({ email }) => {
-    return Promise.resolve(mockUsers.find(user => user.email === email));
-});
-
-User.findById.mockImplementation(id => {
-    return Promise.resolve(mockUsers.find(user => user._id === id));
-});
-
-Token.create.mockImplementation(({ userId, purpose }) => {
-    const token = {
-        _id: ObjectId(),
-        token: tokenStrings[mockTokens.length],
-        userId,
-        purpose
-    };
-
-    mockTokens.push(token);
-
-    return Promise.resolve(token);
-});
-
-Token.findOne.mockImplementation(({ token, purpose, userId }) => {
-    return Promise.resolve(mockTokens.find(validToken =>
-        validToken.token === token
-        && validToken.purpose === purpose
-        && (userId === undefined || validToken.userId === userId)
-    ));
-});
-
-Token.deleteAll.mockImplementation((id, tokenPurpose) => {
-    mockTokens = mockTokens.filter(({ userId, purpose }) => !(userId === id && purpose === tokenPurpose));
-
-    return Promise.resolve();
-});
-
-beforeEach(() => {
-    jest.clearAllMocks();
-    mockUsers = [];
-    mockTokens = [];
-});
+beforeEach(clearMocks);
 
 describe('register', () => {
 
@@ -229,6 +149,39 @@ describe('login', () => {
     });
 
     test('should verify and login user, start trial subscription, redirect to dashboard and delete all registration tokens if token is valid', async () => {
+        const purpose = TokenPurpose.AccountVerification;
+        const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
+        const userB = await User.create({ email, password });
+        const tokenA = await Token.create({ userId: userA._id, purpose });
+        const tokenB = await Token.create({ userId: userB._id, purpose });
+        const tokenC = await Token.create({ userId: userB._id, purpose });
+        const trialEndsAt = moment().add(TRIAL_PERIOD_DAYS, 'days');
+
+        const req = mockReq({
+            body: { email, password },
+            query: {
+                token: tokenC.token
+            }
+        });
+
+        await ctrl.login(req, res);
+        const registrationTokens = mockTokens.filter(
+            ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.AccountVerification
+        );
+
+        expect(registrationTokens).toHaveLength(0);
+        expect(mockTokens).toHaveLength(1);
+        expect(userB.isVerified).toBeTruthy();
+        expect(userB.subscription.stripeCustomerId).toBeDefined();
+        expect(userB.subscription.status).toBe(StripeSubscriptionStatus.Trialing);
+        expect(moment(userB.subscription.endsAt).isSame(trialEndsAt, 'second')).toBeTruthy();
+        expect(stripe.customers.create).toHaveBeenCalledWith({ email });
+        expect(userB.save).toHaveBeenCalled();
+        expect(req.session.userId).toBe(userB._id);
+        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
+    });
+
+    test('should verify and login user, and pair with existing Stripe customer', async () => {
         const purpose = TokenPurpose.AccountVerification;
         const userA = await User.create({ email: 'john.doe@example.com', password: 'foobar' });
         const userB = await User.create({ email, password });

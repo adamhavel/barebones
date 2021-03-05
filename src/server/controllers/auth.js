@@ -75,6 +75,7 @@ export async function login(req, res) {
         }
 
         // TODO: Update tests.
+        // TODO: Find existing subscription.
         const { data: [ existingCustomer ] } = await stripe.customers.list({ email });
         const customer = existingCustomer || await stripe.customers.create({ email });
 
@@ -91,7 +92,6 @@ export async function login(req, res) {
     }
 
     // Reopen account.
-    // TODO: Update unit tests.
     if (user.deletedAt) {
         user.deletedAt = undefined;
         await user.save();
