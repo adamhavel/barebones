@@ -64,7 +64,7 @@
                 "mail": {
                     "new-address": {
                         "subject": "Potvrzení nové e-mailové adresy",
-                        "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nové e-mailové adresy."
+                        "html": "Otevřete <a class=\"t-email-update\" href=\"{{url}}\">{{url}}</a> pro nastavení nové e-mailové adresy."
                     },
                     "old-address": {
                         "subject": "Změna e-mailové adresy",

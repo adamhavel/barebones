@@ -3,8 +3,7 @@ import x from '../../common/routes.js';
 describe('Settings', () => {
 
     beforeEach(function() {
-        cy.task('resetDb');
-        cy.register(this.user);
+        cy.login(this.user);
         cy.visit(x('/settings'));
     });
 

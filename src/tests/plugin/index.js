@@ -2,8 +2,14 @@ import mailhog from 'mailhog';
 import mongoose from 'mongoose';
 import htmlParser from 'node-html-parser';
 import stripeFactory from 'stripe';
+import moment from 'moment';
+import crypto from 'crypto';
 
 import User from '../../server/models/user.js';
+import Token from '../../server/models/token.js';
+import Session from '../../server/models/session.js';
+import { StripeSubscriptionStatus } from '../../server/services/stripe.js';
+import { TRIAL_PERIOD_DAYS } from '../../server/models/subscription.js';
 
 export default async (on, config) => {
     const {
@@ -64,9 +70,19 @@ export default async (on, config) => {
                     }
                 });
 
-                await db.dropCollection('users');
-                await db.dropCollection('tokens');
-                await db.dropCollection('sessions');
+                await User.deleteMany();
+                await Token.deleteMany();
+                await Session.deleteMany();
+
+                const user = await User.create({ email: 'jane.doe@example.com', password: '12345' });
+
+                user.isVerified = true;
+                user.subscription = {
+                    status: StripeSubscriptionStatus.Trialing,
+                    endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
+                };
+
+                await user.save();
 
             } catch(err) {}
 

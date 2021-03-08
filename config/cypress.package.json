@@ -6,6 +6,7 @@
     "stripe": "^8.137.0",
     "cypress": "^6.6.0",
     "mailhog": "^4.15.0",
+    "moment": "^2.29.1",
     "node-html-parser": "^3.0.3"
   }
 }

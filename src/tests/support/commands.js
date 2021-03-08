@@ -2,7 +2,7 @@ import x from '../../common/routes.js';
 import Url from 'url';
 
 Cypress.Commands.add('login', ({ email, password }) => {
-    cy.request({
+    return cy.request({
         method: 'POST',
         url: x('/auth/login'),
         body: { email, password },
@@ -11,7 +11,7 @@ Cypress.Commands.add('login', ({ email, password }) => {
 });
 
 Cypress.Commands.add('logout', () => {
-    cy.request({
+    return cy.request({
         method: 'GET',
         url: x('/auth/logout')
     });
@@ -25,7 +25,7 @@ Cypress.Commands.add('register', ({ email, password }) => {
         form: true
     });
 
-    cy.task('getUrlFromMail', 't-account-verification').then(url => {
+    return cy.task('getUrlFromMail', 't-account-verification').then(url => {
         cy.request({
             method: 'POST',
             url,
@@ -36,7 +36,7 @@ Cypress.Commands.add('register', ({ email, password }) => {
 });
 
 Cypress.Commands.add('submitCredentials', ({ email, password }) => {
-    cy.get('form[type="auth"]').within(() => {
+    return cy.get('form[type="auth"]').within(() => {
         if (email) cy.get('input[name="email"]').clear().type(email);
         if (password) cy.get('input[name="password"]').clear().type(password);
         cy.get('button[type="submit"]').click();

@@ -3,12 +3,14 @@ import x from '../../common/routes.js';
 describe('Authentication', () => {
 
     it('Registering new user', function() {
+        const newUser = { email: 'john.doe@example.com', password: 'foobar' };
+
         cy.visit(x('/auth/register'));
-        cy.submitCredentials(this.user);
+        cy.submitCredentials(newUser);
 
         cy.task('getUrlFromMail', 't-account-verification').then(cy.visit);
 
-        cy.submitCredentials(this.user);
+        cy.submitCredentials(newUser);
         cy.getSessionCookie().should('exist');
     });
 
