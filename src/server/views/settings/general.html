@@ -15,7 +15,7 @@
             <label for="update-email__password">{{ __('common.form.password') }}:</label>
             <input type="password" name="update-email__password" id="update-email__password" required />
             <p>{{ errors['update-email__password'].msg }}</p>
-            <button>{{ __('settings.account.update-email.form.submit') }}</button>
+            <button type="submit">{{ __('settings.account.update-email.form.submit') }}</button>
         </fieldset>
     </form>
 
@@ -23,12 +23,12 @@
         <fieldset>
             <legend>{{ __('settings.account.update-password.heading') }}</legend>
             <label for="newPassword">{{ __('settings.account.update-password.form.new-password') }}</label>
-            <input type="password" name="newPassword" id="newPassword" required />
+            <input type="password" name="newPassword" id="update-password__new-password" required />
             <p>{{ errors.newPassword.msg }}</p>
             <label for="update-password__password">{{ __('settings.account.update-password.form.current-password') }}</label>
             <input type="password" name="update-password__password" id="update-password__password" required />
             <p>{{ errors['update-password__password'].msg }}</p>
-            <button>{{ __('settings.account.update-password.form.submit') }}</button>
+            <button type="submit">{{ __('settings.account.update-password.form.submit') }}</button>
         </fieldset>
     </form>
 
@@ -39,7 +39,7 @@
             <label for="delete-account__password">{{ __('common.form.password') }}:</label>
             <input type="password" name="delete-account__password" id="delete-account__password" required />
             <p>{{ errors['delete-account__password'].msg }}</p>
-            <button>{{ __('settings.account.delete-account.form.submit') }}</button>
+            <button type="submit">{{ __('settings.account.delete-account.form.submit') }}</button>
         </fieldset>
     </form>
 

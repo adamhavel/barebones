@@ -18,28 +18,32 @@ export default async (on, config) => {
         useNewUrlParser: true,
         useCreateIndex: true
     });
+    const mailhogClient = mailhog({ host: mailHost });
     const baseUrl = new URL(config.baseUrl);
     const stripe = stripeFactory(stripePrivateKey);
 
     on('task', {
-        async getUrlFromLastMail(email) {
-            const mailhogClient = mailhog({ host: mailHost });
-            const pollLatestMail = async resolve => {
-                const { html, ID: mailId } = await mailhogClient.latestTo(email);
+        async purgeMail() {
+            await mailhogClient.deleteAll();
 
-                if (mailId) {
-                    await mailhogClient.deleteMessage(mailId);
+            return null;
+        },
+        async getUrlFromMail(subject) {
+            const pollMail = async resolve => {
+                const { html } = await mailhogClient.latestContaining(subject);
+
+                if (html) {
                     resolve(html);
                 } else {
-                    setTimeout(pollLatestMail, 100, resolve);
+                    setTimeout(pollMail, 100, resolve);
                 }
             };
 
-            const latestEmail = await new Promise(pollLatestMail);
+            const mail = await new Promise(pollMail);
             const url = new URL(
                 htmlParser
-                    .parse(latestEmail)
-                    .querySelector('.t-cta')
+                    .parse(mail)
+                    .querySelector('.' + subject)
                     .getAttribute('href')
             );
 

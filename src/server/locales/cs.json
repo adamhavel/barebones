@@ -26,7 +26,7 @@
             },
             "mail": {
                 "subject": "Ověření e-mailové adresy",
-                "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro potvrzení vaší e-mailové adresy."
+                "html": "Otevřete <a class=\"t-account-verification\" href=\"{{url}}\">{{url}}</a> pro potvrzení vaší e-mailové adresy."
             }
         },
         "reset": {
@@ -42,7 +42,7 @@
             },
             "mail": {
                 "subject": "Nastavení nového hesla",
-                "html": "Otevřete <a class=\"t-cta\" href=\"{{url}}\">{{url}}</a> pro nastavení nového hesla."
+                "html": "Otevřete <a class=\"t-password-reset\" href=\"{{url}}\">{{url}}</a> pro nastavení nového hesla."
             }
         }
     },
