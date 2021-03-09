@@ -8,5 +8,6 @@ before(function() {
 
 beforeEach(function() {
     cy.task('purgeMail');
+    cy.task('purgeStripe');
     cy.task('resetDb');
 });

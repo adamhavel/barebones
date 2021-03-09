@@ -30,10 +30,24 @@ describe('Settings', () => {
             cy.get('input[id="update-email__password"]').type(this.user.password);
             cy.get('button[type="submit"]').click();
         });
+
+        cy.task('getUrlFromMail', 't-email-update').then(cy.visit);
+
+        cy.logout();
+        cy.login({ ...this.user, email });
     });
 
-    // it('Deleting account', function() {
-    //     cy.log('yay');
-    // });
+    it.only('Deleting account', function() {
+        const action = x('/settings/delete-account');
+
+        cy.get(`form[action="${action}"]`).within(() => {
+            cy.get('input[id="delete-account__password"]').type(this.user.password);
+            cy.get('button[type="submit"]').click();
+        });
+
+        cy.getSessionCookie().should('not.exist');
+
+        cy.login(this.user);
+    });
 
 });

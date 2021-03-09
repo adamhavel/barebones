@@ -4,6 +4,7 @@ import htmlParser from 'node-html-parser';
 import stripeFactory from 'stripe';
 import moment from 'moment';
 import crypto from 'crypto';
+import { promises as fs } from 'fs';
 
 import User from '../../server/models/user.js';
 import Token from '../../server/models/token.js';
@@ -32,11 +33,11 @@ export default async (on, config) => {
         async purgeMail() {
             await mailhogClient.deleteAll();
 
-            return null;
+            return true;
         },
-        async getUrlFromMail(subject) {
+        async getUrlFromMail(hook) {
             const pollMail = async resolve => {
-                const { html } = await mailhogClient.latestContaining(subject);
+                const { html } = await mailhogClient.latestContaining(hook);
 
                 if (html) {
                     resolve(html);
@@ -49,7 +50,7 @@ export default async (on, config) => {
             const url = new URL(
                 htmlParser
                     .parse(mail)
-                    .querySelector('.' + subject)
+                    .querySelector('.' + hook)
                     .getAttribute('href')
             );
 
@@ -60,33 +61,41 @@ export default async (on, config) => {
         },
         async resetDb() {
             try {
-                const users = await User.find();
-
-                users.forEach(async user => {
-                    const { stripeCustomerId } = user.subscription || {};
-
-                    if (stripeCustomerId) {
-                        await stripe.customers.del(stripeCustomerId);
-                    }
-                });
-
                 await User.deleteMany();
                 await Token.deleteMany();
                 await Session.deleteMany();
 
-                const user = await User.create({ email: 'jane.doe@example.com', password: '12345' });
+                const { email, password } = JSON.parse(await fs.readFile('src/tests/fixtures/user.json', 'utf8'));
+                const user = await User.create({ email, password });
+                const { id: stripeCustomerId } = await stripe.customers.create({ email });
 
                 user.isVerified = true;
                 user.subscription = {
+                    stripeCustomerId,
                     status: StripeSubscriptionStatus.Trialing,
                     endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
                 };
 
                 await user.save();
 
-            } catch(err) {}
+            } catch(err) {
+                console.log(err);
+            }
 
-            return null;
+            return true;
+        },
+        async purgeStripe() {
+            const users = await User.find();
+
+            users.forEach(async user => {
+                const { stripeCustomerId } = user.subscription || {};
+
+                if (stripeCustomerId) {
+                    await stripe.customers.del(stripeCustomerId);
+                }
+            });
+
+            return true;
         }
     });
 

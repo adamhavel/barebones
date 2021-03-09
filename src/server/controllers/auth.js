@@ -92,6 +92,7 @@ export async function login(req, res) {
     }
 
     // Reopen account.
+    // TODO: Add message that account has been reopened.
     if (user.deletedAt) {
         user.deletedAt = undefined;
         await user.save();

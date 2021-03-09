@@ -63,7 +63,7 @@ i18n.configure({
         saveUninitialized: false,
         proxy: true,
         store: sessionStore.default.create({
-            clientPromise: Promise.resolve(connection.getClient()),
+            client: connection.getClient(),
             stringify: false,
             touchAfter: 60*60*24
         }),
