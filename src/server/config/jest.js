@@ -88,7 +88,9 @@ global.mockReq = function(data) {
     return Object.assign({
         query: {},
         body: {},
-        session: {},
+        session: {
+            destroy: jest.fn().mockReturnValue(Promise.resolve())
+        },
         signedCookies: {}
     }, data);
 };
@@ -98,8 +100,11 @@ global.res = {
     render: jest.fn(),
     redirect: jest.fn(),
     clearCookie: jest.fn(),
-    locals: {}
+    locals: {},
+    flash: jest.fn().mockReturnThis()
 };
+
+global.next = jest.fn();
 
 global.randomHex = () => crypto.randomBytes(8).toString('hex');
 global.ObjectId = db.Types.ObjectId;

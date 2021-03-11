@@ -9,7 +9,8 @@
                 "token-invalid": "Odkaz už bohužel vypršel. Na e-mail vám byl zaslán nový.",
                 "token-valid-prompt": "Přihlašte se pro potvrzení Vašeho účtu.",
                 "token-invalid-prompt": "Odkaz už bohužel vypršel. Zadejte přihlašovací údaje a zašleme Vám nový.",
-                "login-prompt": "Pro zobrazení stránky se prosím přihlašte."
+                "login-prompt": "Pro zobrazení stránky se prosím přihlašte.",
+                "account-reopened": "Účet byl obnoven."
             },
             "form": {
                 "submit": "Přihlásit"

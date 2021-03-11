@@ -16,7 +16,7 @@ beforeEach(clearMocks);
 describe('register', () => {
 
     test('should create token, send registration e-mail and render register form', async () => {
-        await ctrl.register(mockReq({ body: { email, password } }), res);
+        await ctrl.register(mockReq({ body: { email, password } }), res, next);
 
         const user = mockUsers.find(user => user.email === email && user.password === password);
         const { token } = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.AccountVerification);
@@ -24,12 +24,8 @@ describe('register', () => {
         expect(user).toBeDefined();
         expect(token).toBeDefined();
         expect(sendRegistrationEmail).toHaveBeenCalledWith(email, token);
-        expect(res.render).toHaveBeenCalledWith('auth/register', {
-            msg: {
-                text: i18n.__('auth.register.msg.email-sent', { email }),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.register.msg.email-sent', { email }));
+        expect(next).toHaveBeenCalled();
     });
 
 });
@@ -39,18 +35,11 @@ describe('login', () => {
     test('should render message with prompt to enter credentials if token is invalid', async () => {
         const user = await User.create({ email, password });
         const req = mockReq({ query: { token: 'foo' } });
-        const next = jest.fn();
 
         await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
         await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
-        expect(res.locals).toStrictEqual({
-            isTokenValid: false,
-            msg: {
-                text: i18n.__('auth.login.msg.token-invalid-prompt'),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.token-invalid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -58,17 +47,10 @@ describe('login', () => {
         const user = await User.create({ email, password });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
         const req = mockReq({ query: { token } });
-        const next = jest.fn();
 
         await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
-        expect(res.locals).toStrictEqual({
-            isTokenValid: true,
-            msg: {
-                text: i18n.__('auth.login.msg.token-valid-prompt'),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.token-valid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -76,7 +58,7 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }), res);
+            }), res, next);
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.login.msg.credentials-invalid'));
@@ -92,7 +74,7 @@ describe('login', () => {
                     email,
                     password: 'admin'
                 }
-            }), res);
+            }), res, next);
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.login.msg.credentials-invalid'));
@@ -105,7 +87,7 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }), res);
+            }), res, next);
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.login.msg.account-not-verified'));
@@ -122,7 +104,7 @@ describe('login', () => {
                 query: {
                     token: 'foo'
                 }
-            }), res);
+            }), res, next);
         } catch(err) {
             const registrationTokens = mockTokens.filter(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.AccountVerification);
 
@@ -141,7 +123,7 @@ describe('login', () => {
         try {
             await ctrl.login(mockReq({
                 body: { email, password }
-            }), res);
+            }), res, next);
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.login.msg.account-locked'));
@@ -164,7 +146,7 @@ describe('login', () => {
             }
         });
 
-        await ctrl.login(req, res);
+        await ctrl.login(req, res, next);
         const registrationTokens = mockTokens.filter(
             ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.AccountVerification
         );
@@ -178,7 +160,7 @@ describe('login', () => {
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
-        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
+        expect(next).toHaveBeenCalled();
     });
 
     test('should verify and login user, and pair with existing Stripe customer', async () => {
@@ -197,7 +179,7 @@ describe('login', () => {
             }
         });
 
-        await ctrl.login(req, res);
+        await ctrl.login(req, res, next);
         const registrationTokens = mockTokens.filter(
             ({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.AccountVerification
         );
@@ -211,7 +193,7 @@ describe('login', () => {
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
         expect(req.session.userId).toBe(userB._id);
-        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
+        expect(next).toHaveBeenCalled();
     });
 
     test('should login verified user and redirect to callback url', async () => {
@@ -225,7 +207,7 @@ describe('login', () => {
             query: { callbackUrl }
         });
 
-        await ctrl.login(req, res);
+        await ctrl.login(req, res, next);
 
         expect(req.session.userId).toBe(user._id);
         expect(res.redirect).toHaveBeenCalledWith(callbackUrl);
@@ -241,9 +223,10 @@ describe('login', () => {
             query: { callbackUrl: 'http://foo' }
         });
 
-        await ctrl.login(req, res);
+        await ctrl.login(req, res, next);
 
-        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
+        expect(res.redirect).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
     });
 
     test('should reopen account after login to cancelled account before expiration date', async () => {
@@ -256,10 +239,10 @@ describe('login', () => {
             body: { email, password }
         });
 
-        await ctrl.login(req, res);
+        await ctrl.login(req, res, next);
 
         expect(user.deletedAt).toBeUndefined();
-        expect(res.redirect).toHaveBeenCalledWith(x('/dashboard'));
+        expect(next).toHaveBeenCalled();
     });
 
 });
@@ -269,18 +252,11 @@ describe('forgot password', () => {
     test('should render forgot password form with prompt to enter e-mail if token is invalid', async () => {
         const user = await User.create({ email, password });
         const req = mockReq({ query: { token: 'foo' } });
-        const next = jest.fn();
 
         await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
         await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.locals).toStrictEqual({
-            isTokenValid: false,
-            msg: {
-                text: i18n.__('auth.reset.msg.token-invalid-prompt'),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.token-invalid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -288,17 +264,10 @@ describe('forgot password', () => {
         const user = await User.create({ email, password });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
         const req = mockReq({ query: { token } });
-        const next = jest.fn();
 
         await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.locals).toStrictEqual({
-            isTokenValid: true,
-            msg: {
-                text: i18n.__('auth.reset.msg.token-valid-prompt'),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.token-valid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -307,14 +276,10 @@ describe('forgot password', () => {
             body: { email }
         });
 
-        await ctrl.initiatePasswordReset(req, res);
+        await ctrl.initiatePasswordReset(req, res, next);
 
-        expect(res.render).toHaveBeenCalledWith('auth/reset/initiate', {
-            msg: {
-                text: i18n.__('auth.reset.msg.email-sent', { email }),
-                type: 'info'
-            }
-        });
+        expect(next).toHaveBeenCalled();
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.email-sent', { email }));
     });
 
     test('should render forgot password form with success message and send new password reset token via e-mail', async () => {
@@ -323,18 +288,14 @@ describe('forgot password', () => {
             body: { email }
         });
 
-        await ctrl.initiatePasswordReset(req, res);
+        await ctrl.initiatePasswordReset(req, res, next);
 
         const { token } = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.PasswordReset);
 
         expect(token).toBeDefined();
         expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, token);
-        expect(res.render).toHaveBeenCalledWith('auth/reset/initiate', {
-            msg: {
-                text: i18n.__('auth.reset.msg.email-sent', { email }),
-                type: 'info'
-            }
-        });
+        expect(next).toHaveBeenCalled();
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.email-sent', { email }));
     });
 
     test('should throw error if provided token is invalid or expired', async () => {
@@ -347,7 +308,7 @@ describe('forgot password', () => {
         });
 
         try {
-            await ctrl.resetPassword(req, res);
+            await ctrl.resetPassword(req, res, next);
         } catch(err) {
             expect(err.statusCode).toBe(401);
             expect(err.message).toBe(i18n.__('auth.reset.msg.token-invalid-prompt'));
@@ -369,7 +330,7 @@ describe('forgot password', () => {
             }
         });
 
-        await ctrl.resetPassword(req, res);
+        await ctrl.resetPassword(req, res, next);
 
         const userBResetTokens = mockTokens.filter(({ userId, purpose }) => userId === userB._id && purpose === TokenPurpose.PasswordReset);
 
@@ -378,12 +339,8 @@ describe('forgot password', () => {
         expect(userB.save).toHaveBeenCalled();
         expect(userB.password).toBe(newPassword);
         expect(Session.revokeSessions).toHaveBeenCalledWith(userB._id);
-        expect(res.render).toHaveBeenCalledWith('auth/login', {
-            msg: {
-                text: i18n.__('auth.reset.msg.success'),
-                type: 'info'
-            }
-        });
+        expect(next).toHaveBeenCalled();
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.success'));
     });
 
 });
@@ -392,8 +349,6 @@ describe('authentication', () => {
 
     test('should populate request object with user if session is active', async () => {
         const user = await User.create({ email, password });
-
-        const next = jest.fn();
         const req = mockReq({
             session: {
                 userId: user._id
@@ -409,7 +364,6 @@ describe('authentication', () => {
 
     test('should clear session cookie if session is expired or invalid', async () => {
         const sessionCookieName = process.env.NODE_SESSION_COOKIE;
-        const next = jest.fn();
         const req = mockReq({
             signedCookies: {
                 [sessionCookieName]: {}
@@ -428,7 +382,6 @@ describe('authentication', () => {
 
         user.isLocked = true;
 
-        const next = jest.fn();
         const req = mockReq({
             session: {
                 userId: user._id,
@@ -440,8 +393,6 @@ describe('authentication', () => {
 
         expect(req.user).toBeUndefined();
         expect(req.session.destroy).toHaveBeenCalled();
-        expect(res.redirect).toHaveBeenCalledWith(x('/landing'));
-        expect(next).not.toHaveBeenCalled();
     });
 
     test('should return 401 and render login form with callback URL if user is not authenticated', () => {
@@ -449,16 +400,12 @@ describe('authentication', () => {
         const query = {
             bar: 'baz'
         };
-        const next = jest.fn();
 
         ctrl.stopUnauthenticated(mockReq({ originalUrl: url, query }), res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.login-prompt'));
         expect(res.render).toHaveBeenCalledWith('auth/login', {
-            msg: {
-                text: i18n.__('auth.login.msg.login-prompt'),
-                type: 'info'
-            },
             querystring: Url.format({
                 query: {
                     ...query,
@@ -470,8 +417,6 @@ describe('authentication', () => {
     });
 
     test('should call next middleware if user is authenticated', () => {
-        const next = jest.fn();
-
         ctrl.stopUnauthenticated(mockReq({ user: {} }), res, next);
 
         expect(res.render).not.toHaveBeenCalled();

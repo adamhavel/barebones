@@ -15,12 +15,7 @@ export function redirect(route) {
 export function renderUserError(view) {
     return (err, req, res, next) => {
         if (err instanceof UserError) {
-            res.status(err.statusCode).render(view, {
-                msg: {
-                    text: err.message,
-                    type: 'error'
-                }
-            });
+            res.flash('error', err.message).status(err.statusCode).render(view);
         } else {
             next(err);
         }

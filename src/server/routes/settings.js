@@ -20,7 +20,8 @@ settings
     .post(
         validate.passwordMatch('delete-account__password'),
         validate.renderFormErrors('settings/general'),
-        ctrl.deleteAccount
+        ctrl.deleteAccount,
+        redirect(x('/landing'))
     );
 
 settings
@@ -30,7 +31,8 @@ settings
         validate.password('newPassword'),
         validate.passwordMatch('update-password__password'),
         validate.renderFormErrors('settings/general'),
-        ctrl.updatePassword
+        ctrl.updatePassword,
+        render('settings/general')
     );
 
 settings
@@ -41,7 +43,8 @@ settings
         validate.uniqueEmail(),
         validate.passwordMatch('update-email__password'),
         validate.renderFormErrors('settings/general'),
-        ctrl.updateEmail
+        ctrl.updateEmail,
+        render('settings/general')
     );
 
 export default settings;

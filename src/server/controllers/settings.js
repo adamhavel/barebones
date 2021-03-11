@@ -4,7 +4,7 @@ import User from '../models/user.js';
 import Session from '../models/session.js';
 import stripe from '../services/stripe.js';
 import { sendEmailAddressUpdateEmails } from '../services/mail.js';
-import { logout, regenerateSession } from './auth.js';
+import { regenerateSession } from './auth.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { AuthError } from '../models/error.js';
 
@@ -31,27 +31,28 @@ export async function validateEmailUpdate(req, res, next) {
         await Session.revokeSessions(user._id, session.id);
 
         res.locals.user = user;
-        res.locals.msg = {
-            text: i18n.__('settings.account.update-email.msg.success'),
-            type: 'info'
-        };
+        res.flash('info', i18n.__('settings.account.update-email.msg.success'));
     }
 
-    next();
+    next?.();
 }
 
-export async function deleteAccount(req, res) {
-    const { user } = req;
+export async function deleteAccount(req, res, next) {
+    const { user, session } = req;
 
     user.deletedAt = Date.now();
 
     await user.save();
-    await Session.revokeSessions(user._id);
+    await Session.revokeSessions(user._id, session.id);
 
-    res.redirect(x('/landing'));
+    // TODO: Add depopulate fn.
+    delete req.session.userId;
+    // TODO: Add i18n
+    res.flash('info', 'Účet byl pozastaven. Do 30 dní ho lze obnovit přihlášením, poté bude nenávratně smazán.');
+    next?.();
 }
 
-export async function updatePassword(req, res) {
+export async function updatePassword(req, res, next) {
     const { user, session } = req;
 
     user.password = req.body.newPassword;
@@ -59,16 +60,12 @@ export async function updatePassword(req, res) {
     await user.save();
     await Session.revokeSessions(user._id, session.id);
 
-    res.render('settings/general', {
-        msg: {
-            text: i18n.__('settings.account.update-password.msg.success'),
-            type: 'info'
-        }
-    });
+    res.flash('info', i18n.__('settings.account.update-password.msg.success'));
+    next?.();
 }
 
 // TODO: Make custom validation
-export async function updateEmail(req, res) {
+export async function updateEmail(req, res, next) {
     const { user, body: { email } } = req;
 
     user.emailCandidate = email;
@@ -80,10 +77,6 @@ export async function updateEmail(req, res) {
 
     sendEmailAddressUpdateEmails(user.email, email, token);
 
-    res.render('settings/general', {
-        msg: {
-            text: i18n.__('settings.account.update-email.msg.email-sent', { email }),
-            type: 'info'
-        }
-    });
+    res.flash('info', i18n.__('settings.account.update-email.msg.email-sent', { email }));
+    next?.();
 }

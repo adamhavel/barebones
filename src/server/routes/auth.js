@@ -21,6 +21,7 @@ auth
         validate.password(),
         validate.renderFormErrors('auth/login'),
         ctrl.login,
+        redirect(x('/dashboard')),
         renderUserError('auth/login')
     );
 
@@ -32,7 +33,8 @@ auth
         validate.uniqueEmail(),
         validate.password(),
         validate.renderFormErrors('auth/register'),
-        ctrl.register
+        ctrl.register,
+        render('auth/register')
     );
 
 auth
@@ -42,6 +44,7 @@ auth
         validate.email(),
         validate.renderFormErrors('auth/reset/initiate'),
         ctrl.initiatePasswordReset,
+        render('auth/reset/initiate'),
         renderUserError('auth/reset/initiate')
     );
 
@@ -53,12 +56,16 @@ auth
         validate.password(),
         validate.renderFormErrors('auth/reset/confirm'),
         ctrl.resetPassword,
+        render('auth/login'),
         renderUserError('auth/reset/confirm')
     );
 
 auth
     .route(x('/auth/logout'))
     .all(ctrl.stopUnauthenticated)
-    .get(ctrl.logout);
+    .get(
+        ctrl.logout,
+        redirect(x('/landing'))
+    );
 
 export default auth;

@@ -10,6 +10,7 @@ import i18n from 'i18n';
 import Url from 'url';
 
 import { authenticate } from './controllers/auth.js';
+import { flash } from './controllers/flash.js';
 import router from './routes/router.js';
 import x from '../common/routes.js';
 import { initMailQueue } from './services/mail.js';
@@ -77,6 +78,7 @@ i18n.configure({
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(i18n.init);
     app.use(authenticate);
+    app.use(flash);
 
     app.use((req, res, next) => {
         const { query, body } = req;

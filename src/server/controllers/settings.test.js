@@ -23,16 +23,12 @@ describe('update password', () => {
             body: { newPassword }
         });
 
-        await ctrl.updatePassword(req, res);
+        await ctrl.updatePassword(req, res, next);
 
         expect(user.password).toBe(newPassword);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(res.render).toHaveBeenCalledWith('settings/general', {
-            msg: {
-                text: i18n.__('settings.account.update-password.msg.success'),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-password.msg.success'));
+        expect(next).toHaveBeenCalled();
     });
 
 });
@@ -41,13 +37,18 @@ describe('delete account', () => {
 
     test('should mark account as deleted, revoke all sessions, and redirect to landing page', async () => {
         const user = await User.create({ email, password });
-        const req = mockReq({ user });
+        const sessionId = randomHex();
+        const req = mockReq({
+            user,
+            session: { id: sessionId },
+        });
 
-        await ctrl.deleteAccount(req, res);
+        await ctrl.deleteAccount(req, res, next);
 
         expect(moment(user.deletedAt).isSame(moment(), 'second')).toBeTruthy();
-        expect(Session.revokeSessions).toHaveBeenCalledWith(user._id);
-        expect(res.redirect).toHaveBeenCalledWith(x('/landing'));
+        expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
+        expect(res.flash).toHaveBeenCalledWith('info', 'Účet byl pozastaven. Do 30 dní ho lze obnovit přihlášením, poté bude nenávratně smazán.');
+        expect(next).toHaveBeenCalled();
     });
 
 });
@@ -62,19 +63,15 @@ describe('update email', () => {
             body: { email: newEmail }
         });
 
-        await ctrl.updateEmail(req, res);
+        await ctrl.updateEmail(req, res, next);
 
         const { token } = mockTokens.find(({ userId, purpose }) => userId === user._id && purpose === TokenPurpose.EmailUpdate);
 
         expect(user.emailCandidate).toBe(newEmail);
         expect(token).toBeDefined();
         expect(sendEmailAddressUpdateEmails).toHaveBeenCalledWith(user.email, newEmail, token);
-        expect(res.render).toHaveBeenCalledWith('settings/general', {
-            msg: {
-                text: i18n.__('settings.account.update-email.msg.email-sent', { email: newEmail }),
-                type: 'info'
-            }
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-email.msg.email-sent', { email: newEmail }));
+        expect(next).toHaveBeenCalled();
     });
 
     test('should throw error if provided token is invalid or expired', async () => {
@@ -131,10 +128,7 @@ describe('update email', () => {
         );
         expect(mockTokens).toHaveLength(0);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(res.locals.msg).toStrictEqual({
-            text: i18n.__('settings.account.update-email.msg.success'),
-            type: 'info'
-        });
+        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-email.msg.success'));
         expect(next).toHaveBeenCalled();
     });
 

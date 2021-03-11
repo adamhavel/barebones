@@ -34,18 +34,14 @@ export function validateToken(purpose) {
         if (token) {
             const validToken = await Token.findOne({ token, purpose });
 
-            res.locals.isTokenValid = !!validToken;
-            res.locals.msg = {
-                text: i18n.__(`auth.${namespace}.msg.token-${validToken ? 'valid' : 'invalid'}-prompt`),
-                type: 'info'
-            };
+            res.flash('info', i18n.__(`auth.${namespace}.msg.token-${validToken ? 'valid' : 'invalid'}-prompt`));
         }
 
         next();
     }
 }
 
-export async function login(req, res) {
+export async function login(req, res, next) {
     const { email, password } = req.body;
     const { token, callbackUrl } = req.query;
     const user = await User.findOne({ email });
@@ -95,7 +91,10 @@ export async function login(req, res) {
     // TODO: Add message that account has been reopened.
     if (user.deletedAt) {
         user.deletedAt = undefined;
+
         await user.save();
+
+        res.flash('info', i18n.__('auth.login.msg.account-reopened'));
     }
 
     populateSession(user._id, req);
@@ -104,10 +103,10 @@ export async function login(req, res) {
         return res.redirect(decodeURI(callbackUrl));
     }
 
-    res.redirect(x('/dashboard'));
+    next();
 }
 
-export async function initiatePasswordReset(req, res) {
+export async function initiatePasswordReset(req, res, next) {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
@@ -118,15 +117,12 @@ export async function initiatePasswordReset(req, res) {
     }
 
     // Show success message even if no user found, to prevent account fishing.
-    res.render('auth/reset/initiate', {
-        msg: {
-            text: i18n.__('auth.reset.msg.email-sent', { email }),
-            type: 'info'
-        }
-    });
+    res.flash('info', i18n.__('auth.reset.msg.email-sent', { email }));
+
+    next();
 }
 
-export async function resetPassword(req, res) {
+export async function resetPassword(req, res, next) {
     const { token } = req.query;
     const { password } = req.body;
     const validToken = await Token.findOne({ token, purpose: TokenPurpose.PasswordReset });
@@ -145,12 +141,9 @@ export async function resetPassword(req, res) {
     await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
     await Session.revokeSessions(user._id);
 
-    res.render('auth/login', {
-        msg: {
-            text: i18n.__('auth.reset.msg.success'),
-            type: 'info'
-        }
-    });
+    res.flash('info', i18n.__('auth.reset.msg.success'));
+
+    next();
 }
 
 function populateSession(userId, req) {
@@ -158,27 +151,22 @@ function populateSession(userId, req) {
     req.session.ip = req.ip;
 }
 
-export async function register(req, res) {
+export async function register(req, res, next) {
     const { email, password } = req.body;
     const newUser = await User.create({ email, password });
     const { token } = await Token.create({ userId: newUser._id, purpose: TokenPurpose.AccountVerification });
 
     sendRegistrationEmail(email, token);
 
-    res.render('auth/register', {
-        msg: {
-            text: i18n.__('auth.register.msg.email-sent', { email }),
-            type: 'info'
-        }
-    });
+    res.flash('info', i18n.__('auth.register.msg.email-sent', { email }));
+
+    next();
 }
 
-export function logout(req, res) {
-    req.session.destroy(err => {
-        if (err) throw new ApplicationError(err);
+export async function logout(req, res, next) {
+    await destroySession(req);
 
-        res.redirect(x('/landing'));
-    });
+    next?.();
 }
 
 export function regenerateSession(req) {
@@ -192,6 +180,16 @@ export function regenerateSession(req) {
     });
 }
 
+export function destroySession(req) {
+    return new Promise((resolve, reject) => {
+        req.session.destroy(err => {
+            if (err) reject(new ApplicationError(err));
+
+            resolve();
+        });
+    });
+}
+
 export async function authenticate(req, res, next) {
     const { userId, ip } = req.session;
     const user = userId && await User.findById(userId);
@@ -199,7 +197,7 @@ export async function authenticate(req, res, next) {
 
     if (user) {
         if (user.isLocked) {
-            return logout(req, res);
+            return logout(req, res, next);
         }
 
         req.user = user;
@@ -213,18 +211,17 @@ export async function authenticate(req, res, next) {
 
 export function stopUnauthenticated(req, res, next) {
     if (!req.user) {
-        res.status(401).render('auth/login', {
-            msg: {
-                text: i18n.__('auth.login.msg.login-prompt'),
-                type: 'info'
-            },
-            querystring: Url.format({
-                query: {
-                    ...req.query,
-                    callbackUrl: req.originalUrl
-                }
-            })
-        });
+        res
+            .flash('info', i18n.__('auth.login.msg.login-prompt'))
+            .status(401)
+            .render('auth/login', {
+                querystring: Url.format({
+                    query: {
+                        ...req.query,
+                        callbackUrl: req.originalUrl
+                    }
+                })
+            });
     } else {
         next();
     }
