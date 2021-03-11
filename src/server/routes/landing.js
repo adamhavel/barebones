@@ -6,6 +6,6 @@ const landing = express.Router();
 
 landing
     .route(x('/landing'))
-    .get(render('landing'))
+    .get(render('landing'));
 
 export default landing;

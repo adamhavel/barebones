@@ -4,9 +4,10 @@ import User from '../models/user.js';
 import Session from '../models/session.js';
 import stripe from '../services/stripe.js';
 import { sendEmailAddressUpdateEmails } from '../services/mail.js';
-import { regenerateSession } from './auth.js';
+import { regenerateSession, depopulateSession } from './auth.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { AuthError } from '../models/error.js';
+import { FlashType } from '../models/flash.js';
 
 export async function validateEmailUpdate(req, res, next) {
     const { user, query: { token }, session } = req;
@@ -31,7 +32,7 @@ export async function validateEmailUpdate(req, res, next) {
         await Session.revokeSessions(user._id, session.id);
 
         res.locals.user = user;
-        res.flash('info', i18n.__('settings.account.update-email.msg.success'));
+        res.flash(FlashType.Info, i18n.__('settings.account.update-email.msg.success'));
     }
 
     next?.();
@@ -45,13 +46,12 @@ export async function deleteAccount(req, res, next) {
     await user.save();
     await Session.revokeSessions(user._id, session.id);
 
-    // TODO: Add depopulate fn.
-    delete req.session.userId;
-    // TODO: Add i18n
-    res.flash('info', 'Účet byl pozastaven. Do 30 dní ho lze obnovit přihlášením, poté bude nenávratně smazán.');
+    depopulateSession(req);
+    res.flash(FlashType.Info, i18n.__('settings.account.delete-account.msg.success'));
     next?.();
 }
 
+// TODO: Add regenerate session call.
 export async function updatePassword(req, res, next) {
     const { user, session } = req;
 
@@ -60,11 +60,12 @@ export async function updatePassword(req, res, next) {
     await user.save();
     await Session.revokeSessions(user._id, session.id);
 
-    res.flash('info', i18n.__('settings.account.update-password.msg.success'));
+    res.flash(FlashType.Info, i18n.__('settings.account.update-password.msg.success'));
     next?.();
 }
 
 // TODO: Make custom validation
+// TODO: Add regenerate session call.
 export async function updateEmail(req, res, next) {
     const { user, body: { email } } = req;
 
@@ -77,6 +78,6 @@ export async function updateEmail(req, res, next) {
 
     sendEmailAddressUpdateEmails(user.email, email, token);
 
-    res.flash('info', i18n.__('settings.account.update-email.msg.email-sent', { email }));
+    res.flash(FlashType.Info, i18n.__('settings.account.update-email.msg.email-sent', { email }));
     next?.();
 }

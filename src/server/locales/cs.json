@@ -90,6 +90,9 @@
                 "desc": "",
                 "form": {
                     "submit": "Zrušit účet"
+                },
+                "msg": {
+                    "success": "Účet byl pozastaven. Do 30 dní ho lze obnovit přihlášením, poté bude nenávratně smazán."
                 }
             }
         }

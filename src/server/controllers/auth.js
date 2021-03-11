@@ -10,6 +10,7 @@ import Token, { TokenPurpose } from '../models/token.js';
 import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
 import Session from '../models/session.js';
 import { AuthError, ApplicationError } from '../models/error.js';
+import { FlashType } from '../models/flash.js';
 
 const {
     NODE_SESSION_COOKIE: sessionCookieName
@@ -34,10 +35,10 @@ export function validateToken(purpose) {
         if (token) {
             const validToken = await Token.findOne({ token, purpose });
 
-            res.flash('info', i18n.__(`auth.${namespace}.msg.token-${validToken ? 'valid' : 'invalid'}-prompt`));
+            res.flash(FlashType.Info, i18n.__(`auth.${namespace}.msg.token-${validToken ? 'valid' : 'invalid'}-prompt`));
         }
 
-        next();
+        next?.();
     }
 }
 
@@ -94,7 +95,7 @@ export async function login(req, res, next) {
 
         await user.save();
 
-        res.flash('info', i18n.__('auth.login.msg.account-reopened'));
+        res.flash(FlashType.Info, i18n.__('auth.login.msg.account-reopened'));
     }
 
     populateSession(user._id, req);
@@ -103,7 +104,7 @@ export async function login(req, res, next) {
         return res.redirect(decodeURI(callbackUrl));
     }
 
-    next();
+    next?.();
 }
 
 export async function initiatePasswordReset(req, res, next) {
@@ -117,9 +118,9 @@ export async function initiatePasswordReset(req, res, next) {
     }
 
     // Show success message even if no user found, to prevent account fishing.
-    res.flash('info', i18n.__('auth.reset.msg.email-sent', { email }));
+    res.flash(FlashType.Info, i18n.__('auth.reset.msg.email-sent', { email }));
 
-    next();
+    next?.();
 }
 
 export async function resetPassword(req, res, next) {
@@ -141,14 +142,9 @@ export async function resetPassword(req, res, next) {
     await Token.deleteAll(user._id, TokenPurpose.PasswordReset);
     await Session.revokeSessions(user._id);
 
-    res.flash('info', i18n.__('auth.reset.msg.success'));
+    res.flash(FlashType.Info, i18n.__('auth.reset.msg.success'));
 
-    next();
-}
-
-function populateSession(userId, req) {
-    req.session.userId = userId;
-    req.session.ip = req.ip;
+    next?.();
 }
 
 export async function register(req, res, next) {
@@ -158,15 +154,25 @@ export async function register(req, res, next) {
 
     sendRegistrationEmail(email, token);
 
-    res.flash('info', i18n.__('auth.register.msg.email-sent', { email }));
+    res.flash(FlashType.Info, i18n.__('auth.register.msg.email-sent', { email }));
 
-    next();
+    next?.();
 }
 
 export async function logout(req, res, next) {
     await destroySession(req);
 
     next?.();
+}
+
+export function populateSession(userId, req) {
+    req.session.userId = userId;
+    req.session.ip = req.ip;
+}
+
+export function depopulateSession(req) {
+    delete req.session.userId;
+    delete req.session.ip;
 }
 
 export function regenerateSession(req) {
@@ -206,13 +212,13 @@ export async function authenticate(req, res, next) {
         res.clearCookie(sessionCookieName);
     }
 
-    next();
+    next?.();
 }
 
 export function stopUnauthenticated(req, res, next) {
     if (!req.user) {
         res
-            .flash('info', i18n.__('auth.login.msg.login-prompt'))
+            .flash(FlashType.Info, i18n.__('auth.login.msg.login-prompt'))
             .status(401)
             .render('auth/login', {
                 querystring: Url.format({
@@ -223,7 +229,7 @@ export function stopUnauthenticated(req, res, next) {
                 })
             });
     } else {
-        next();
+        next?.();
     }
 }
 
@@ -231,6 +237,6 @@ export function stopAuthenticated(req, res, next) {
     if (req.user && req.originalUrl !== x('/auth/logout')) {
         res.redirect(x('/dashboard'));
     } else {
-        next();
+        next?.();
     }
 }

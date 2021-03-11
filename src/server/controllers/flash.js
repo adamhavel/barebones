@@ -17,7 +17,7 @@ export async function flash(req, res, next) {
         res.locals.flash = req.session.flash;
         delete req.session.flash;
 
-        if (!req.session.userId) {
+        if (!req.session.userId && !req.session.ip) {
             await destroySession(req);
         }
     }

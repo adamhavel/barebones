@@ -10,6 +10,7 @@ import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
 import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
+import { FlashType } from '../models/flash.js';
 
 beforeEach(clearMocks);
 
@@ -24,7 +25,7 @@ describe('register', () => {
         expect(user).toBeDefined();
         expect(token).toBeDefined();
         expect(sendRegistrationEmail).toHaveBeenCalledWith(email, token);
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.register.msg.email-sent', { email }));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.register.msg.email-sent', { email }));
         expect(next).toHaveBeenCalled();
     });
 
@@ -39,7 +40,7 @@ describe('login', () => {
         await Token.create({ userId: user._id, purpose: TokenPurpose.AccountVerification });
         await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.token-invalid-prompt'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.login.msg.token-invalid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -50,7 +51,7 @@ describe('login', () => {
 
         await ctrl.validateToken(TokenPurpose.AccountVerification)(req, res, next);
 
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.token-valid-prompt'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.login.msg.token-valid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -256,7 +257,7 @@ describe('forgot password', () => {
         await Token.create({ userId: user._id, purpose: TokenPurpose.PasswordReset });
         await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.token-invalid-prompt'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.reset.msg.token-invalid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -267,7 +268,7 @@ describe('forgot password', () => {
 
         await ctrl.validateToken(TokenPurpose.PasswordReset)(req, res, next);
 
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.token-valid-prompt'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.reset.msg.token-valid-prompt'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -279,7 +280,7 @@ describe('forgot password', () => {
         await ctrl.initiatePasswordReset(req, res, next);
 
         expect(next).toHaveBeenCalled();
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.email-sent', { email }));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.reset.msg.email-sent', { email }));
     });
 
     test('should render forgot password form with success message and send new password reset token via e-mail', async () => {
@@ -295,7 +296,7 @@ describe('forgot password', () => {
         expect(token).toBeDefined();
         expect(sendPasswordResetEmail).toHaveBeenCalledWith(email, token);
         expect(next).toHaveBeenCalled();
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.email-sent', { email }));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.reset.msg.email-sent', { email }));
     });
 
     test('should throw error if provided token is invalid or expired', async () => {
@@ -340,7 +341,7 @@ describe('forgot password', () => {
         expect(userB.password).toBe(newPassword);
         expect(Session.revokeSessions).toHaveBeenCalledWith(userB._id);
         expect(next).toHaveBeenCalled();
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.reset.msg.success'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.reset.msg.success'));
     });
 
 });
@@ -404,7 +405,7 @@ describe('authentication', () => {
         ctrl.stopUnauthenticated(mockReq({ originalUrl: url, query }), res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('auth.login.msg.login-prompt'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('auth.login.msg.login-prompt'));
         expect(res.render).toHaveBeenCalledWith('auth/login', {
             querystring: Url.format({
                 query: {

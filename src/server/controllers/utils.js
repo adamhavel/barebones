@@ -1,4 +1,5 @@
 import { UserError } from '../models/error.js';
+import { FlashType } from '../models/flash.js';
 
 export function render(view) {
     return (req, res) => {
@@ -15,7 +16,7 @@ export function redirect(route) {
 export function renderUserError(view) {
     return (err, req, res, next) => {
         if (err instanceof UserError) {
-            res.flash('error', err.message).status(err.statusCode).render(view);
+            res.flash(FlashType.Error, err.message).status(err.statusCode).render(view);
         } else {
             next(err);
         }

@@ -8,6 +8,7 @@ import User from '../models/user.js';
 import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
+import { FlashType } from '../models/flash.js';
 
 beforeEach(clearMocks);
 
@@ -27,7 +28,7 @@ describe('update password', () => {
 
         expect(user.password).toBe(newPassword);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-password.msg.success'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.update-password.msg.success'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -47,7 +48,7 @@ describe('delete account', () => {
 
         expect(moment(user.deletedAt).isSame(moment(), 'second')).toBeTruthy();
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(res.flash).toHaveBeenCalledWith('info', 'Účet byl pozastaven. Do 30 dní ho lze obnovit přihlášením, poté bude nenávratně smazán.');
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.delete-account.msg.success'));
         expect(next).toHaveBeenCalled();
     });
 
@@ -70,7 +71,7 @@ describe('update email', () => {
         expect(user.emailCandidate).toBe(newEmail);
         expect(token).toBeDefined();
         expect(sendEmailAddressUpdateEmails).toHaveBeenCalledWith(user.email, newEmail, token);
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-email.msg.email-sent', { email: newEmail }));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.update-email.msg.email-sent', { email: newEmail }));
         expect(next).toHaveBeenCalled();
     });
 
@@ -128,7 +129,7 @@ describe('update email', () => {
         );
         expect(mockTokens).toHaveLength(0);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(res.flash).toHaveBeenCalledWith('info', i18n.__('settings.account.update-email.msg.success'));
+        expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.update-email.msg.success'));
         expect(next).toHaveBeenCalled();
     });
 

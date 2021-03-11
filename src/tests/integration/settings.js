@@ -37,7 +37,7 @@ describe('Settings', () => {
         cy.login({ ...this.user, email });
     });
 
-    it.only('Deleting account', function() {
+    it('Deleting account', function() {
         const action = x('/settings/delete-account');
 
         cy.get(`form[action="${action}"]`).within(() => {
@@ -48,6 +48,7 @@ describe('Settings', () => {
         cy.getSessionCookie().should('not.exist');
 
         cy.login(this.user);
+        // TODO: Check account reopening message.
     });
 
 });
