@@ -1,21 +1,16 @@
 import x from '../../common/routes.js';
-import Url from 'url';
 
-Cypress.Commands.add('login', ({ email, password }) => {
-    return cy.request({
-        method: 'POST',
-        url: x('/auth/login'),
-        body: { email, password },
-        form: true
-    });
-});
+Cypress.Commands.add('login', ({ email, password }) => cy.request({
+    method: 'POST',
+    url: x('/auth/login'),
+    body: { email, password },
+    form: true
+}));
 
-Cypress.Commands.add('logout', () => {
-    return cy.request({
-        method: 'GET',
-        url: x('/auth/logout')
-    });
-});
+Cypress.Commands.add('logout', () => cy.request({
+    method: 'GET',
+    url: x('/auth/logout')
+}));
 
 Cypress.Commands.add('register', ({ email, password }) => {
     cy.request({
@@ -43,6 +38,8 @@ Cypress.Commands.add('submitCredentials', ({ email, password }) => {
     })
 });
 
-Cypress.Commands.add('getSessionCookie', () => {
-    return cy.getCookie(Cypress.env('NODE_SESSION_COOKIE'));
-});
+Cypress.Commands.add('getSessionCookie', () => cy.getCookie(Cypress.env('NODE_SESSION_COOKIE')));
+
+Cypress.Commands.add('isFlashMessage', text => cy.get('.t-flash').should('have.text', text));
+
+Cypress.Commands.add('i18n', key => cy.task('i18n', key));

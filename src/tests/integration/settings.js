@@ -46,9 +46,10 @@ describe('Settings', () => {
         });
 
         cy.getSessionCookie().should('not.exist');
+        cy.i18n('settings.account.delete-account.msg.success').then(cy.isFlashMessage);
 
-        cy.login(this.user);
-        // TODO: Check account reopening message.
+        cy.submitCredentials(this.user);
+        cy.i18n('auth.login.msg.account-reopened').then(cy.isFlashMessage);
     });
 
 });

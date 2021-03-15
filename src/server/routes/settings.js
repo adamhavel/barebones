@@ -21,7 +21,7 @@ settings
         validate.passwordMatch('delete-account__password'),
         validate.renderFormErrors('settings/general'),
         ctrl.deleteAccount,
-        redirect(x('/landing'))
+        redirect(x('/auth/login'))
     );
 
 settings

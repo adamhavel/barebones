@@ -5,12 +5,20 @@ import stripeFactory from 'stripe';
 import moment from 'moment';
 import crypto from 'crypto';
 import { promises as fs } from 'fs';
+import i18n from 'i18n';
 
 import User from '../../server/models/user.js';
 import Token from '../../server/models/token.js';
 import Session from '../../server/models/session.js';
 import { StripeSubscriptionStatus } from '../../server/services/stripe.js';
 import { TRIAL_PERIOD_DAYS } from '../../server/models/subscription.js';
+
+i18n.configure({
+    directory: 'src/server/locales',
+    defaultLocale: 'cs',
+    objectNotation: true,
+    updateFiles: false,
+});
 
 export default async (on, config) => {
     const {
@@ -30,6 +38,9 @@ export default async (on, config) => {
     const stripe = stripeFactory(stripePrivateKey);
 
     on('task', {
+        async i18n(key) {
+            return i18n.__(key);
+        },
         async purgeMail() {
             await mailhogClient.deleteAll();
 

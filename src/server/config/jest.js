@@ -14,7 +14,7 @@ i18n.configure({
     updateFiles: false,
 });
 
-process.env.NODE_SESSION_COOKIE = 'stamp';
+process.env.NODE_SESSION_COOKIE = 'session';
 
 jest.mock('../services/mail.js');
 jest.mock('../services/stripe.js');
