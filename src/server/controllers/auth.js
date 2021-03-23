@@ -4,7 +4,7 @@ import Url from 'url';
 
 import x from '../../common/routes.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
-import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
+import stripe, { SubscriptionStatus } from '../services/stripe.js';
 import User from '../models/user.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
@@ -72,24 +72,42 @@ export async function login(req, res, next) {
         }
 
         // TODO: Update tests.
-        // TODO: Find existing subscription.
         const { data: [ existingCustomer ] } = await stripe.customers.list({ email });
-        const customer = existingCustomer || await stripe.customers.create({ email });
+        const { id: customer } = existingCustomer || await stripe.customers.create({ email });
 
         user.isVerified = true;
         user.subscription = {
-            stripeCustomerId: customer.id,
-            status: StripeSubscriptionStatus.Trialing,
+            stripeCustomerId: customer,
+            status: SubscriptionStatus.Trialing,
             endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
         };
+
+        if (existingCustomer) {
+            const { data: [ existingSubscription ] } = await stripe.subscriptions.list({ customer });
+            const { data: [ existingPaymentMethod ] } = await stripe.paymentMethods.list({ customer });
+
+            if (existingSubscription) {
+                user.subscription = {
+                    ...user.subscription,
+                    stripeSubscriptionId: existingSubscription.id,
+                    status: existingSubscription.status,
+                    endsAt: moment.unix(existingSubscription.current_period_end).toDate(),
+                    isRenewd: existingSubscription.cancel_at_period_end
+                }
+            };
+
+            user.subscription.stripePaymentMethodId = existingPaymentMethod.id;
+        }
 
         await user.save();
         // Delete all tokens created during verification process.
         await Token.deleteAll(user._id, TokenPurpose.AccountVerification);
+
+        // TODO: Add i18n.
+        res.flash(FlashType.Info, i18n.__('auth.login.msg.account-verified'));
     }
 
     // Reopen account.
-    // TODO: Add message that account has been reopened.
     if (user.deletedAt) {
         user.deletedAt = undefined;
 

@@ -18,7 +18,8 @@ const routes = {
     },
     subscription: {
         base: 'clenstvi',
-        'create-subscription': 'vytvorit'
+        'create-subscription': 'vytvorit',
+        'cancel-subscription': 'zrusit'
     },
     dashboard: 'prehled'
 };

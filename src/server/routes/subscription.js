@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 
 import x from '../../common/routes.js';
 import * as ctrl from '../controllers/subscription.js';
-import { render } from '../controllers/utils.js';
+import { render, redirect } from '../controllers/utils.js';
 
 const {
     STRIPE_PUBLIC_KEY: stripePublicKey,
@@ -34,6 +34,14 @@ subscription
         (err, req, res, next) => {
             res.status(402).send({ error: { message: err.message } });
         }
+    );
+
+subscription
+    .route(x('/subscription/cancel-subscription'))
+    .get(redirect(x('/settings')))
+    .post(
+        ctrl.cancelSubscription,
+        render('settings/general')
     );
 
 export default subscription;

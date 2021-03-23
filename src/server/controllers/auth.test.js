@@ -7,7 +7,7 @@ import * as ctrl from './auth.js';
 import { sendRegistrationEmail, sendPasswordResetEmail } from '../services/mail.js';
 import User from '../models/user.js';
 import { TRIAL_PERIOD_DAYS } from '../models/subscription.js';
-import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
+import stripe, { SubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { FlashType } from '../models/flash.js';
@@ -156,7 +156,7 @@ describe('login', () => {
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
         expect(userB.subscription.stripeCustomerId).toBeDefined();
-        expect(userB.subscription.status).toBe(StripeSubscriptionStatus.Trialing);
+        expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
         expect(moment(userB.subscription.endsAt).isSame(trialEndsAt, 'second')).toBeTruthy();
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('login', () => {
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
         expect(userB.subscription.stripeCustomerId).toBeDefined();
-        expect(userB.subscription.status).toBe(StripeSubscriptionStatus.Trialing);
+        expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
         expect(moment(userB.subscription.endsAt).isSame(trialEndsAt, 'second')).toBeTruthy();
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
         expect(userB.save).toHaveBeenCalled();

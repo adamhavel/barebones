@@ -10,7 +10,7 @@ import i18n from 'i18n';
 import User from '../../server/models/user.js';
 import Token from '../../server/models/token.js';
 import Session from '../../server/models/session.js';
-import { StripeSubscriptionStatus } from '../../server/services/stripe.js';
+import { SubscriptionStatus } from '../../server/services/stripe.js';
 import { TRIAL_PERIOD_DAYS } from '../../server/models/subscription.js';
 
 i18n.configure({
@@ -83,7 +83,7 @@ export default async (on, config) => {
                 user.isVerified = true;
                 user.subscription = {
                     stripeCustomerId,
-                    status: StripeSubscriptionStatus.Trialing,
+                    status: SubscriptionStatus.Trialing,
                     endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
                 };
 

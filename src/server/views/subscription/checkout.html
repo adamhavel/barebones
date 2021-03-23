@@ -7,21 +7,37 @@
 {% endblock %}
 
 {% block content %}
-<h1>Checkout</h1>
+<section>
+    <h2>{{ __('settings.subscription.heading') }}</h2>
 
-<ul>
-    <li>Success: 4000002030000002</li>
-    <li>3D: 4000002500003155</li>
-    <li>Expired: 4000000000000069</li>
-</ul>
+    {% if user.subscription.endsAt %}
+        {{ user.subscription.endsAt }}
+        {{ user.subscription.isRenewed }}
+    {% endif %}
 
-<form id="stripe-checkout" method="post">
-    <fieldset>
-        <input type="text" id="stripe-billing-name" name="name" value="John Doe" required>
-    </fieldset>
-    <fieldset style="width: 400px;" id="stripe-card"></fieldset>
-    <p id="stripe-errors" role="alert"></p>
-    <button>Zaplatit</button>
-</form>
+    {% if user.subscription.lastFourDigits %}
+        <p>**** **** **** {{ user.subscription.lastFourDigits }}</p>
+        <form action="{{ x('/subscription/remove-payment-method') }}" method="post">
+            <button type="submit">Zrušit členství</button>
+        </form>
+        <form action="{{ x('/subscription/update-payment-method') }}" method="post">
+            <button type="submit">Zrušit členství</button>
+        </form>
+    {% endif %}
+
+    <form action="{{ x('/subscription/cancel-subscription') }}" method="post">
+        <button type="submit">Zrušit členství</button>
+    </form>
+
+    <form id="stripe-checkout" method="post">
+        <fieldset>
+            <input type="text" id="stripe-billing-name" name="name" value="John Doe" required>
+            <div style="width: 400px;" id="stripe-card"></div>
+            <p id="stripe-errors" role="alert"></p>
+        </fieldset>
+        <button type="submit">Zaplatit</button>
+    </form>
+
+</section>
 
 {% endblock %}

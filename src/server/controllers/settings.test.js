@@ -5,7 +5,7 @@ import x from '../../common/routes.js';
 import * as ctrl from './settings.js';
 import { sendEmailAddressUpdateEmails } from '../services/mail.js';
 import User from '../models/user.js';
-import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
+import stripe, { SubscriptionStatus } from '../services/stripe.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
 import { FlashType } from '../models/flash.js';
@@ -37,7 +37,15 @@ describe('update password', () => {
 describe('delete account', () => {
 
     test('should mark account as deleted, revoke all sessions, and redirect to landing page', async () => {
-        const user = await User.create({ email, password });
+        const stripeSubscriptionId = randomHex();
+        const user = await User.create({
+            email,
+            password,
+            subscription: {
+                stripeSubscriptionId,
+                isRenewed: true
+            }
+        });
         const sessionId = randomHex();
         const req = mockReq({
             user,
@@ -47,7 +55,9 @@ describe('delete account', () => {
         await ctrl.deleteAccount(req, res, next);
 
         expect(moment(user.deletedAt).isSame(moment(), 'second')).toBeTruthy();
+        expect(user.subscription.isRenewed).toBe(false);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
+        expect(stripe.subscriptions.update).toHaveBeenCalledWith(stripeSubscriptionId, { 'cancel_at_period_end': true });
         expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.delete-account.msg.success'));
         expect(next).toHaveBeenCalled();
     });
@@ -77,13 +87,14 @@ describe('update email', () => {
 
     test('should throw error if provided token is invalid or expired', async () => {
         const newEmail = 'jane.doe@protonmail.com';
-        const user = {
-            ...await User.create({ email, password }),
+        const user = await User.create({
+            email,
+            password,
             emailCandidate: newEmail,
             subscription: {
                 stripeCustomerId: randomHex()
             }
-        };
+        });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailUpdate });
         const sessionId = randomHex();
         const next = jest.fn();
@@ -103,13 +114,14 @@ describe('update email', () => {
 
     test('should update email, update Stripe customer, revoke all other sessions, and call next middleware', async () => {
         const newEmail = 'jane.doe@protonmail.com';
-        const user = {
-            ...await User.create({ email, password }),
+        const user = await User.create({
+            email,
+            password,
             emailCandidate: newEmail,
             subscription: {
                 stripeCustomerId: randomHex()
             }
-        };
+        });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailUpdate });
         const sessionId = randomHex();
         const next = jest.fn();

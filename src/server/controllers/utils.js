@@ -1,9 +1,9 @@
 import { UserError } from '../models/error.js';
 import { FlashType } from '../models/flash.js';
 
-export function render(view) {
+export function render(view, data) {
     return (req, res) => {
-        res.render(view);
+        res.render(view, data);
     };
 };
 

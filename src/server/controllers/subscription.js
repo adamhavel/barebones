@@ -1,11 +1,13 @@
+import i18n from 'i18n';
 import x from '../../common/routes.js';
 import stripe, {
     STRIPE_SIGNATURE_HEADER,
-    StripeSubscriptionStatus,
+    SubscriptionStatus,
     StripeEvent
 } from '../services/stripe.js';
 import moment from 'moment';
 import User from '../models/user.js';
+import { FlashType } from '../models/flash.js';
 
 const {
     STRIPE_PRICE_ID: stripePriceId,
@@ -14,44 +16,67 @@ const {
 
 export function stopUnsubscribed(req, res, next) {
     const { status, endsAt } = req?.user.subscription;
-    const { Active, Trialing } = StripeSubscriptionStatus;
-    const isSubscribed = status === Active;
-    const isTrialing = (status === Trialing) && (moment().toDate() < endsAt);
+    const { Incomplete, IncompleteExpired } = SubscriptionStatus;
+    const isIncomplete = status === Incomplete || status === IncompleteExpired;
+    const isSubscribed = (moment().toDate() < moment(endsAt).endOf('day')) && !isIncomplete;
 
-    if (isSubscribed || isTrialing) {
+    if (isSubscribed) {
         next();
     } else {
+        res.flash(FlashType.Info, i18n.__('subscription.msg.trial-ended'));
         res.redirect(x('/subscription'));
     }
 }
 
 export async function handleStripeEvents(req, res) {
-    const event = stripe.webhooks.constructEvent(
+    const { type, data } = stripe.webhooks.constructEvent(
         req.body,
         req.headers[STRIPE_SIGNATURE_HEADER],
         stripeHookSecret
     );
-    const payload = event.data.object;
+    const payload = data.object;
+    const query = { 'subscription.stripeCustomerId': payload.customer };
+    let transform;
 
-    switch (event.type) {
+    switch (type) {
+
         case StripeEvent.SubscriptionUpdated: {
-            await User.updateOne(
-                { 'subscription.stripeCustomerId': payload.customer },
-                {
-                    'subscription.status': payload.status,
-                    'subscription.endsAt': moment.unix(payload.current_period_end).toDate()
-                }
-            );
+            transform = {
+                'subscription.status': payload.status,
+                'subscription.endsAt': moment.unix(payload.current_period_end).toDate()
+            };
+            break;
         }
+
+        case StripeEvent.SubscriptionCanceled: {
+            transform = {
+                'subscription.stripeSubscriptionId': undefined,
+                'subscription.status': payload.status
+            };
+            break;
+        }
+    }
+
+    if (transform) {
+        await User.updateOne(query, transform);
     }
 
     res.sendStatus(200);
 }
 
+// TODO: Add i18n to errors.
 export async function createSubscription(req, res) {
     const paymentMethod = req.body;
     const { user } = req;
-    const { stripeCustomerId } = user.subscription;
+    const {
+        stripeCustomerId,
+        stripeSubscriptionId,
+        status
+    } = user.subscription;
+
+    if (stripeSubscriptionId && status === SubscriptionStatus.Active) {
+        return res.send({ error: { message: 'Členství už existuje.' } });
+    }
 
     await stripe.paymentMethods.attach(
         paymentMethod.id,
@@ -79,13 +104,24 @@ export async function createSubscription(req, res) {
         stripePaymentMethodId: paymentMethod.id,
         status: subscription.status,
         endsAt: moment.unix(subscription.current_period_end).toDate(),
-        lastFourDigits: paymentMethod.card.last4
+        lastFourDigits: paymentMethod.card.last4,
+        isRenewed: true
     };
 
-    req.user = await user.save();
+    await user.save();
 
     res.send({
         error: subscription.error,
         paymentIntent: subscription.latest_invoice.payment_intent
     });
+}
+
+export async function cancelSubscription(req, res, next) {
+    const { stripeSubscriptionId } = req.user.subscription;
+
+    const subscription = await stripe.subscriptions.del(
+        stripeSubscriptionId
+    );
+
+    next?.();
 }

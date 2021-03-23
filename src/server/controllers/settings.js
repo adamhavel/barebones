@@ -38,10 +38,20 @@ export async function validateEmailUpdate(req, res, next) {
     next?.();
 }
 
+// TODO: Cancel Stripe subscription.
 export async function deleteAccount(req, res, next) {
     const { user, session } = req;
+    const { stripeSubscriptionId } = user.subscription;
 
     user.deletedAt = Date.now();
+
+    if (stripeSubscriptionId) {
+        user.subscription.isRenewed = false;
+        await stripe.subscriptions.update(
+            stripeSubscriptionId,
+            { 'cancel_at_period_end': true }
+        );
+    }
 
     await user.save();
     await Session.revokeSessions(user._id, session.id);

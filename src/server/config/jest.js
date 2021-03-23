@@ -2,7 +2,7 @@ import i18n from 'i18n';
 import db from 'mongoose';
 import crypto from 'crypto';
 
-import stripe, { StripeSubscriptionStatus } from '../services/stripe.js';
+import stripe, { SubscriptionStatus } from '../services/stripe.js';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 import Token, { TokenPurpose } from '../models/token.js';
@@ -22,17 +22,16 @@ jest.mock('../models/token.js');
 jest.mock('../models/user.js');
 jest.mock('../models/session.js');
 
-User.create.mockImplementation(({ email, password }) => {
+User.create.mockImplementation(data => {
     const user = {
         _id: ObjectId(),
-        email,
-        password,
         isVerified: false,
         isLocked: false,
         matchesPassword(pwd) {
             return pwd === this.password;
         },
-        save: jest.fn(() => Promise.resolve(this))
+        save: jest.fn(() => Promise.resolve(this)),
+        ...data
     };
 
     mockUsers.push(user);

@@ -1,4 +1,4 @@
-import routes from './routes.js';
+import x from './routes.js';
 
 const locale = document.documentElement.getAttribute('lang');
 const stripePublicKey = document.querySelector('meta[name="stripe-public-key"]')?.getAttribute('content');
@@ -51,7 +51,7 @@ formEl.addEventListener('submit', async ev => {
 
         // Pay for subscription.
         const { paymentIntent, error: subscriptionError } = await fetch(
-            routes('subscription/create-subscription'),
+            x('/subscription/create-subscription'),
             createReq(paymentMethod)
         ).then(res => res.json());
 

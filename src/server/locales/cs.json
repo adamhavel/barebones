@@ -97,6 +97,12 @@
             }
         }
     },
+    "subscription": {
+        "heading": "Členství",
+        "msg": {
+            "trial-ended": "Zkušení doba vypršela. Chcete-li aplikaci nadále využívat, zadejte prosím platební údaje."
+        }
+    },
     "nav": {
         "landing": "Úvod",
         "dashboard": "Přehled",
