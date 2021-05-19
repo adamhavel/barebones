@@ -1,43 +1,60 @@
 {% extends "../document.html" %}
 
 {% block head %}
-<meta name="stripe-public-key" content="{{ stripePublicKey }}">
-<script src="https://js.stripe.com/v3/" defer></script>
-<script src="/js/checkout.js" type="module"></script>
+    <meta name="stripe-public-key" content="{{ stripePublicKey }}">
+    <script src="https://js.stripe.com/v3/" defer></script>
+    <script src="/js/checkout.js" type="module"></script>
 {% endblock %}
 
 {% block content %}
-<section>
-    <h2>{{ __('settings.subscription.heading') }}</h2>
-
-    {% if user.subscription.endsAt %}
-        {{ user.subscription.endsAt }}
-        {{ user.subscription.isRenewed }}
-    {% endif %}
-
-    {% if user.subscription.lastFourDigits %}
-        <p>**** **** **** {{ user.subscription.lastFourDigits }}</p>
-        <form action="{{ x('/subscription/remove-payment-method') }}" method="post">
-            <button type="submit">Zrušit členství</button>
+    {% set subscriptionEndsAt = user.subscription.endsAt.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) %}
+    {% set subscriptionStatus = user.subscription.status %}
+    {% set paymentStatus = user.subscription.paymentStatus %}
+    {% macro checkout() %}
+        <form id="stripe-checkout" method="post">
+            <fieldset>
+                <input type="text" id="stripe-billing-name" name="name" value="John Doe" required>
+                <div style="width: 400px;" id="stripe-card"></div>
+                <p id="stripe-errors" role="alert"></p>
+            </fieldset>
+            <button type="submit">Zaplatit členství</button>
         </form>
-        <form action="{{ x('/subscription/update-payment-method') }}" method="post">
-            <button type="submit">Zrušit členství</button>
-        </form>
-    {% endif %}
+    {% endmacro %}
+    <section>
+        <h2>{{ __('settings.subscription.heading') }}</h2>
 
-    <form action="{{ x('/subscription/cancel-subscription') }}" method="post">
-        <button type="submit">Zrušit členství</button>
-    </form>
+        <ul>
+            <li>Success: 4000002030000002</li>
+            <li>3D: 4000002500003155</li>
+            <li>Expired: 4000000000000069</li>
+            <li>Failure: 4000000000000341</li>
+        </ul>
 
-    <form id="stripe-checkout" method="post">
-        <fieldset>
-            <input type="text" id="stripe-billing-name" name="name" value="John Doe" required>
-            <div style="width: 400px;" id="stripe-card"></div>
-            <p id="stripe-errors" role="alert"></p>
-        </fieldset>
-        <button type="submit">Zaplatit</button>
-    </form>
+        {% if subscriptionStatus === SubscriptionStatus.Trialing %}
+            <p>Zkušební doba vyprší {{ subscriptionEndsAt }}.</p>
+            {{ checkout() }}
+        {% elseif subscriptionStatus === SubscriptionStatus.Active %}
+            <p>Vaše členství je aktivní do {{ subscriptionEndsAt }}. Členství bude v tento den {{ 'automaticky obnoveno' if user.subscription.isRenewed else 'ukončeno' }}.</p>
+            <form action="{{ x('/subscription/toggle-renewal') }}" method="post">
+                <button type="submit">{{ 'Vypnout' if user.subscription.isRenewed else 'Zapnout' }} automatickou obnovu členství</button>
+            </form>
+        {% elseif subscriptionStatus === SubscriptionStatus.Incomplete %}
+            {% if paymentStatus === PaymentStatus.RequiresPaymentMethod %}
+                <p>Platba kartou bohužel neprošla. Zkuste použít jinou kartu.</p>
+                {{ checkout() }}
+            {% elseif paymentStatus === PaymentStatus.RequiresAction %}
+                <p>Platbu kartou je nutné potvrdit.</p>
+            {% endif %}
+        {% else %}
+            {{ checkout() }}
+        {% endif %}
 
-</section>
+        {% if user.subscription.lastFourDigits %}
+            <p>**** **** **** {{ user.subscription.lastFourDigits }}</p>
+            <form action="{{ x('/subscription/remove-payment-method') }}" method="post">
+                <button type="submit">Odstranit kartu</button>
+            </form>
+        {% endif %}
 
+    </section>
 {% endblock %}

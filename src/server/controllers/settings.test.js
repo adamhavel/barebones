@@ -37,12 +37,12 @@ describe('update password', () => {
 describe('delete account', () => {
 
     test('should mark account as deleted, revoke all sessions, and redirect to landing page', async () => {
-        const stripeSubscriptionId = randomHex();
+        const subscriptionId = randomHex();
         const user = await User.create({
             email,
             password,
             subscription: {
-                stripeSubscriptionId,
+                subscriptionId,
                 isRenewed: true
             }
         });
@@ -57,7 +57,7 @@ describe('delete account', () => {
         expect(moment(user.deletedAt).isSame(moment(), 'second')).toBeTruthy();
         expect(user.subscription.isRenewed).toBe(false);
         expect(Session.revokeSessions).toHaveBeenCalledWith(user._id, sessionId);
-        expect(stripe.subscriptions.update).toHaveBeenCalledWith(stripeSubscriptionId, { 'cancel_at_period_end': true });
+        expect(stripe.subscriptions.update).toHaveBeenCalledWith(subscriptionId, { 'cancel_at_period_end': true });
         expect(res.flash).toHaveBeenCalledWith(FlashType.Info, i18n.__('settings.account.delete-account.msg.success'));
         expect(next).toHaveBeenCalled();
     });
@@ -92,7 +92,7 @@ describe('update email', () => {
             password,
             emailCandidate: newEmail,
             subscription: {
-                stripeCustomerId: randomHex()
+                customerId: randomHex()
             }
         });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailUpdate });
@@ -119,7 +119,7 @@ describe('update email', () => {
             password,
             emailCandidate: newEmail,
             subscription: {
-                stripeCustomerId: randomHex()
+                customerId: randomHex()
             }
         });
         const { token } = await Token.create({ userId: user._id, purpose: TokenPurpose.EmailUpdate });
@@ -136,7 +136,7 @@ describe('update email', () => {
         expect(user.emailCandidate).toBeUndefined();
         expect(user.email).toBe(newEmail);
         expect(stripe.customers.update).toHaveBeenCalledWith(
-            user.subscription.stripeCustomerId,
+            user.subscription.customerId,
             { email: newEmail }
         );
         expect(mockTokens).toHaveLength(0);

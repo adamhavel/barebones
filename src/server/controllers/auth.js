@@ -77,7 +77,7 @@ export async function login(req, res, next) {
 
         user.isVerified = true;
         user.subscription = {
-            stripeCustomerId: customer,
+            customerId: customer,
             status: SubscriptionStatus.Trialing,
             endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
         };
@@ -89,14 +89,14 @@ export async function login(req, res, next) {
             if (existingSubscription) {
                 user.subscription = {
                     ...user.subscription,
-                    stripeSubscriptionId: existingSubscription.id,
+                    subscriptionId: existingSubscription.id,
                     status: existingSubscription.status,
                     endsAt: moment.unix(existingSubscription.current_period_end).toDate(),
                     isRenewd: existingSubscription.cancel_at_period_end
                 }
             };
 
-            user.subscription.stripePaymentMethodId = existingPaymentMethod.id;
+            user.subscription.paymentMethodId = existingPaymentMethod.id;
         }
 
         await user.save();

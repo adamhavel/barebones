@@ -23,7 +23,7 @@ export async function validateEmailUpdate(req, res, next) {
         user.emailCandidate = undefined;
 
         await stripe.customers.update(
-            user.subscription.stripeCustomerId,
+            user.subscription.customerId,
             { email: user.email }
         );
 
@@ -41,14 +41,14 @@ export async function validateEmailUpdate(req, res, next) {
 // TODO: Cancel Stripe subscription.
 export async function deleteAccount(req, res, next) {
     const { user, session } = req;
-    const { stripeSubscriptionId } = user.subscription;
+    const { subscriptionId } = user.subscription;
 
     user.deletedAt = Date.now();
 
-    if (stripeSubscriptionId) {
+    if (subscriptionId) {
         user.subscription.isRenewed = false;
         await stripe.subscriptions.update(
-            stripeSubscriptionId,
+            subscriptionId,
             { 'cancel_at_period_end': true }
         );
     }

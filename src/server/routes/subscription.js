@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import x from '../../common/routes.js';
 import * as ctrl from '../controllers/subscription.js';
 import { render, redirect } from '../controllers/utils.js';
+import { SubscriptionStatus, PaymentStatus } from '../services/stripe.js';
 
 const {
     STRIPE_PUBLIC_KEY: stripePublicKey,
@@ -14,7 +15,7 @@ const subscription = express.Router();
 
 subscription
     .route(x('/subscription'))
-    .get(render('subscription/checkout', { stripePublicKey }));
+    .get(render('subscription/checkout', { stripePublicKey, SubscriptionStatus, PaymentStatus }));
 
 subscription
     .route('/' + stripeHookPath)
@@ -37,11 +38,27 @@ subscription
     );
 
 subscription
-    .route(x('/subscription/cancel-subscription'))
-    .get(redirect(x('/settings')))
+    .route(x('/subscription/toggle-renewal'))
+    .get(redirect(x('/subscription')))
     .post(
-        ctrl.cancelSubscription,
-        render('settings/general')
+        ctrl.toggleRenewal,
+        redirect(x('/subscription'))
+    );
+
+subscription
+    .route(x('/subscription/add-payment-method'))
+    .get(redirect(x('/subscription')))
+    .post(
+        ctrl.addPaymentMethod,
+        redirect(x('/subscription'))
+    );
+
+subscription
+    .route(x('/subscription/remove-payment-method'))
+    .get(redirect(x('/subscription')))
+    .post(
+        ctrl.removePaymentMethod,
+        redirect(x('/subscription'))
     );
 
 export default subscription;

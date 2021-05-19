@@ -19,7 +19,9 @@ const routes = {
     subscription: {
         base: 'clenstvi',
         'create-subscription': 'vytvorit',
-        'cancel-subscription': 'zrusit'
+        'toggle-renewal': 'prepnout-obnovu',
+        'add-payment-method': 'pridat-kartu',
+        'remove-payment-method': 'odstranit-kartu'
     },
     dashboard: 'prehled'
 };

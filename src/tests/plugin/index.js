@@ -78,11 +78,11 @@ export default async (on, config) => {
 
                 const { email, password } = JSON.parse(await fs.readFile('src/tests/fixtures/user.json', 'utf8'));
                 const user = await User.create({ email, password });
-                const { id: stripeCustomerId } = await stripe.customers.create({ email });
+                const { id: customerId } = await stripe.customers.create({ email });
 
                 user.isVerified = true;
                 user.subscription = {
-                    stripeCustomerId,
+                    customerId,
                     status: SubscriptionStatus.Trialing,
                     endsAt: moment().add(TRIAL_PERIOD_DAYS, 'days').toDate()
                 };
@@ -99,10 +99,10 @@ export default async (on, config) => {
             const users = await User.find();
 
             users.forEach(async user => {
-                const { stripeCustomerId } = user.subscription || {};
+                const { customerId } = user.subscription || {};
 
-                if (stripeCustomerId) {
-                    await stripe.customers.del(stripeCustomerId);
+                if (customerId) {
+                    await stripe.customers.del(customerId);
                 }
             });
 

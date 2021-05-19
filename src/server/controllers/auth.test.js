@@ -155,7 +155,7 @@ describe('login', () => {
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
-        expect(userB.subscription.stripeCustomerId).toBeDefined();
+        expect(userB.subscription.customerId).toBeDefined();
         expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
         expect(moment(userB.subscription.endsAt).isSame(trialEndsAt, 'second')).toBeTruthy();
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
@@ -188,7 +188,7 @@ describe('login', () => {
         expect(registrationTokens).toHaveLength(0);
         expect(mockTokens).toHaveLength(1);
         expect(userB.isVerified).toBeTruthy();
-        expect(userB.subscription.stripeCustomerId).toBeDefined();
+        expect(userB.subscription.customerId).toBeDefined();
         expect(userB.subscription.status).toBe(SubscriptionStatus.Trialing);
         expect(moment(userB.subscription.endsAt).isSame(trialEndsAt, 'second')).toBeTruthy();
         expect(stripe.customers.create).toHaveBeenCalledWith({ email });
